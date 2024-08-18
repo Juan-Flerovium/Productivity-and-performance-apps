@@ -1587,8 +1587,8 @@ def plot_making(a, b):
     flowlineactivityfig.update_traces(
         hovertemplate='Initial Date: %{customdata[0]}<br>Final Date: %{customdata[1]}<br>Activity: %{customdata[2]}',
     )
-    if [i for i in list(np.concatenate([i.x for i in flowlineactivityfig.data])) if i != None]!=[]:
-        enddate = max(datereadjust5(i) for i in list(np.concatenate([i.x for i in flowlineactivityfig.data])) if type(i) == date or type(i) == datetime)
+    if [i for i in list(concatenatelists([nd(i.x) for i in flowlineactivityfig.data])) if i != None]!=[]:
+        enddate = max(datereadjust5(i) for i in list(concatenatelists([nd(i.x) for i in flowlineactivityfig.data])) if type(i) == date or type(i) == datetime)
     else:
         #For the case that not enough data has been gathered
         enddate = date(2023, 9, 28)
@@ -1670,8 +1670,8 @@ def plot_making2(a, b):
     flowlineactivityfig.update_traces(
         hovertemplate='Initial Date: %{customdata[0]}<br>Final Date: %{customdata[1]}<br>Activity: %{customdata[2]}',
     )
-    if [i for i in list(np.concatenate([i.x for i in flowlineactivityfig.data])) if i != None]!=[]:
-        enddate = max(datereadjust5(i) for i in list(np.concatenate([i.x for i in flowlineactivityfig.data])) if type(i) == date or type(i) == datetime)
+    if [i for i in list(concatenatelists([nd(i.x) for i in flowlineactivityfig.data])) if i != None]!=[]:
+        enddate = max(datereadjust5(i) for i in list(concatenatelists([nd(i.x) for i in flowlineactivityfig.data])) if type(i) == date or type(i) == datetime)
     else:
         #For the case that not enough data has been gathered
         enddate = date(2023, 9, 28)
@@ -1754,7 +1754,7 @@ def plot_making3(a, b):
         hovertemplate='Initial Date: %{customdata[0]}<br>Final Date: %{customdata[1]}<br>Activity: %{customdata[2]}',
     )
     if [i for i in list(concatenatelists([nd(i.x) for i in flowlineactivityfig.data])) if i != None]!=[]:
-          enddate = max(datereadjust5(i) for i in list(np.concatenate([i.x for i in flowlineactivityfig.data])) if type(i) == date or type(i) == datetime)
+          enddate = max(datereadjust5(i) for i in list(concatenatelists([nd(i.x) for i in flowlineactivityfig.data])) if type(i) == date or type(i) == datetime)
     else:
           #For the case that not enough data has been gathered
           enddate = date(2023, 9, 28)
