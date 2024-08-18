@@ -13,7 +13,7 @@ import plotly.express as px
 from glob import glob 
 
 # csvs will contain all CSV files names ends with .csv in a list
-csvs = glob('/Users/juanfranciscolorussonotarofrancesco/Desktop/Progress Data Exports/*.csv')
+csvs = glob('*.csv')
 
 # remove the trailing .csv from CSV files names
 new_table_list = [csv[:-3] for csv in csvs[:-1]]
