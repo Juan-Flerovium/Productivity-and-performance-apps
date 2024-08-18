@@ -1,0 +1,49 @@
+﻿Level,apartments,name,planned_start,planned_finish
+S_01,1-6,Demise Walls 1st Drylining Visit,2022-11-21,2023-01-10
+S_01,1-6,HL MEP Services (1st Fix),2022-12-15,2023-02-14
+S_01,1-6,Internal walls 2nd Drylining Visit,2023-02-13,2023-02-24
+S_01,1-6,HL (2nd Fix) & L/L MEP Services,2023-02-27,2023-03-14
+S_01,1-6,Final Drylining / Install Ceilings,2023-03-17,2023-04-19
+S_01,1-6,Screed / Joinery / Kitchens,2023-04-19,2023-06-01
+S_02,1-6,Demise Walls 1st Drylining Visit,2022-11-23,2023-01-18
+S_02,1-6,HL MEP Services (1st Fix),2023-01-16,2023-02-17
+S_02,1-6,Internal walls 2nd Drylining Visit,2023-02-13,2023-02-24
+S_02,1-6,HL (2nd Fix) & L/L MEP Services,2023-02-27,2023-03-14
+S_02,1-6,Final Drylining / Install Ceilings,2023-03-17,2023-04-19
+S_02,1-6,Screed / Joinery / Kitchens,2023-04-19,2023-06-01
+S_03,1-6,Demise Walls 1st Drylining Visit,2023-01-04,2023-02-14
+S_03,1-6,HL MEP Services (1st Fix),2023-02-09,2023-02-22
+S_03,1-6,Internal walls 2nd Drylining Visit,2023-02-24,2023-03-09
+S_03,1-6,HL (2nd Fix) & L/L MEP Services,2023-03-10,2023-03-27
+S_03,1-6,Final Drylining / Install Ceilings,2023-03-30,2023-05-03
+S_03,1-6,Screed / Joinery / Kitchens,2023-05-03,2023-06-14
+S_04,1-6,Demise Walls 1st Drylining Visit,2023-01-04,2023-02-17
+S_04,1-6,HL MEP Services (1st Fix),2023-02-09,2023-03-01
+S_04,1-6,Internal walls 2nd Drylining Visit,2023-03-03,2023-03-16
+S_04,1-6,HL (2nd Fix) & L/L MEP Services,2023-03-17,2023-04-03
+S_04,1-6,Final Drylining / Install Ceilings,2023-04-06,2023-05-10
+S_04,1-6,Screed / Joinery / Kitchens,2023-05-10,2023-06-21
+S_05,1-6,Demise Walls 1st Drylining Visit,2023-01-18,2023-03-01
+S_05,1-6,HL MEP Services (1st Fix),2023-02-09,2023-03-13
+S_05,1-6,Internal walls 2nd Drylining Visit,2023-03-15,2023-03-28
+S_05,1-6,HL (2nd Fix) & L/L MEP Services,2023-03-29,2023-04-17
+S_05,1-6,Final Drylining / Install Ceilings,2023-04-20,2023-05-22
+S_05,1-6,Screed / Joinery / Kitchens,2023-05-22,2023-07-03
+S_06,1-6,Demise Walls 1st Drylining Visit,2023-02-14,2023-03-13
+S_06,1-6,HL MEP Services (1st Fix),2023-02-09,2023-03-23
+S_06,1-6,Internal walls 2nd Drylining Visit,2023-03-27,2023-04-11
+S_06,1-6,HL (2nd Fix) & L/L MEP Services,2023-04-12,2023-04-27
+S_06,1-6,Final Drylining / Install Ceilings,2023-05-03,2023-06-02
+S_06,1-6,Screed / Joinery / Kitchens,2023-06-02,2023-07-13
+S_07,1-6,Demise Walls 1st Drylining Visit,2023-02-28,2023-03-27
+S_07,1-6,HL MEP Services (1st Fix),2023-03-28,2023-04-11
+S_07,1-6,Internal walls 2nd Drylining Visit,2023-04-13,2023-04-26
+S_07,1-6,HL (2nd Fix) & L/L MEP Services,2023-04-27,2023-05-15
+S_07,1-6,Final Drylining / Install Ceilings,2023-05-18,2023-06-19
+S_07,1-6,Screed / Joinery / Kitchens,2023-06-19,2023-07-28
+S_08,1-6,Demise Walls 1st Drylining Visit,2023-03-14,2023-04-12
+S_08,1-6,HL MEP Services (1st Fix),2023-04-13,2023-04-25
+S_08,1-6,Internal walls 2nd Drylining Visit,2023-04-27,2023-05-11
+S_08,1-6,HL (2nd Fix) & L/L MEP Services,2023-05-12,2023-05-30
+S_08,1-6,Final Drylining / Install Ceilings,2023-06-02,2023-07-03
+S_08,1-6,Screed / Joinery / Kitchens,2023-07-03,2023-08-11
