@@ -1749,6 +1749,7 @@ def plot_making3(a, b):
     flowlineactivityfig.update_layout(yaxis=dict(title='<b>Activities<b>', title_standoff=120, tickvals = None))
     return flowlineactivityfig
 
+plot_making3([],[])
 
 # In[28]:
 
