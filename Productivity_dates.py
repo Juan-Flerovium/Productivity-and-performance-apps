@@ -370,11 +370,12 @@ def datereadjust6(x):
     else:
         return x.date()
 
-def nd(x):
-    if type(x) == np.ndarray:
-        return x
-    else:
-        return np.array(x)
+def concatenatelists(x):
+    y = []
+    for i in x:
+        for j in i:
+            y.append(j)
+    return y
     
 
 
@@ -1744,7 +1745,7 @@ def plot_making3(a, b):
     flowlineactivityfig.update_traces(
         hovertemplate='Initial Date: %{customdata[0]}<br>Final Date: %{customdata[1]}<br>Activity: %{customdata[2]}',
     )
-    if [i for i in list(np.concatenate([nd(i.x) for i in flowlineactivityfig.data])) if i != None]!=[]:
+    if [i for i in list(concatenatelists([i.x for i in flowlineactivityfig.data])) if i != None]!=[]:
           enddate = max(datereadjust5(i) for i in list(np.concatenate([i.x for i in flowlineactivityfig.data])) if type(i) == date or type(i) == datetime)
     else:
           #For the case that not enough data has been gathered
