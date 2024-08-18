@@ -11,12 +11,17 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 from glob import glob 
+import os
 
 # csvs will contain all CSV files names ends with .csv in a list
 csvs = glob('*.csv')
 
+#Clarify files to exclude and replace csvs
+files_to_exclude = ['Data_north_wp.csv', 'Data_south_wp.csv']
+csvs = [file for file in csvs if os.path.basename(file) not in files_to_exclude]
+
 # remove the trailing .csv from CSV files names
-new_table_list = [csv[:-3] for csv in csvs[:-1]]
+new_table_list = [csv[:-3] for csv in csvs]
 
 #List of strings of activity names
 Necessary_list = ['Unnamed: 1', 'Demising Walls', 'FCU & Ductwork', 'Perimeter Walls Stud & Board',
@@ -26,7 +31,7 @@ Necessary_list = ['Unnamed: 1', 'Demising Walls', 'FCU & Ductwork', 'Perimeter W
 
 #read begin by first activity
 df1 = pd.read_csv(csvs[0])[Necessary_list[0]]
-dfs = [pd.read_csv(csv)['Demising Walls'] for csv in csvs[:-1]]
+dfs = [pd.read_csv(csv)['Demising Walls'] for csv in csvs]
 df = pd.concat(dfs, axis=1, ignore_index=True)
 df = pd.concat([df1, df], axis=1, ignore_index=True)
 
@@ -34,7 +39,7 @@ for i in range(2, len(Necessary_list)):
 
     #Get csvs by activities and their dates
 
-    dfs = [pd.read_csv(csv)[Necessary_list[i]] for csv in csvs[:-1]]
+    dfs = [pd.read_csv(csv)[Necessary_list[i]] for csv in csvs]
 
     #concatenate all dataframes into a single dataframe
     #By date by columns
