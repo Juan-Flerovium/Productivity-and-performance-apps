@@ -1738,8 +1738,6 @@ def plot_making3(a, b):
     flowlineactivityfig.update_traces(
         hovertemplate='Initial Date: %{customdata[0]}<br>Final Date: %{customdata[1]}<br>Activity: %{customdata[2]}',
     )
-    if [i.x for i in flowlineactivityfig.data] == []:
-        raise ValueError('Zero array')
     if [i for i in list(np.concatenate([i.x for i in flowlineactivityfig.data])) if i != None]!=[]:
           enddate = max(datereadjust5(i) for i in list(np.concatenate([i.x for i in flowlineactivityfig.data])) if type(i) == date or type(i) == datetime)
     else:
