@@ -275,7 +275,7 @@ for i in range(6):
 # In[6]:
 
 
-datadf = pd.read_csv("/Users/juanfranciscolorussonotarofrancesco/Desktop/Data_north_wp.csv")
+datadf = pd.read_csv("Data_north_wp.csv")
 datadf.head()
 north_wp_dates = datadf[['Level', 'apartments', 'name', 'planned_start', 'planned_finish']].to_numpy()
 
@@ -302,7 +302,7 @@ north_wp_dates
 # In[7]:
 
 
-datadf = pd.read_csv("/Users/juanfranciscolorussonotarofrancesco/Desktop/Data_south_wp.csv")
+datadf = pd.read_csv("Data_south_wp.csv")
 datadf.head()
 south_wp_dates = datadf[['Level', 'apartments', 'name', 'planned_start', 'planned_finish']].to_numpy()
 #print(south_wp_dates)
