@@ -1738,11 +1738,12 @@ def plot_making3(a, b):
     flowlineactivityfig.update_traces(
         hovertemplate='Initial Date: %{customdata[0]}<br>Final Date: %{customdata[1]}<br>Activity: %{customdata[2]}',
     )
-    if [i for i in list(np.concatenate([i.x for i in flowlineactivityfig.data])) if i != None]!=[]:
-        enddate = max(datereadjust5(i) for i in list(np.concatenate([i.x for i in flowlineactivityfig.data])) if type(i) == date or type(i) == datetime)
-    else:
-        #For the case that not enough data has been gathered
-        enddate = date(2023, 9, 28)
+    if [i.x for i in flowlineactivityfig.data] != []:
+      if [i for i in list(np.concatenate([i.x for i in flowlineactivityfig.data])) if i != None]!=[]:
+          enddate = max(datereadjust5(i) for i in list(np.concatenate([i.x for i in flowlineactivityfig.data])) if type(i) == date or type(i) == datetime)
+      else:
+          #For the case that not enough data has been gathered
+          enddate = date(2023, 9, 28)
     flowlineactivityfig.update_layout(height = 860, width = 1403, title=dict(text = '<b>Plan vs Activity lines<b>', font = dict(size = 30)), xaxis_range = [date(2022, 10, 31)-timedelta(days=5), 
                                                                                                        enddate+timedelta(days=5)], yaxis_range=[-0.25, 6.25])
     flowlineactivityfig.update_xaxes(title='<b>Date<b>')
