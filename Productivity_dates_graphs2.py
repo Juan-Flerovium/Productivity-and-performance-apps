@@ -94,7 +94,7 @@ Inputs = [Input('building-dropdown', 'value'),
           Input('location-dropdown', 'value')]
 
 app = Dash(__name__)
-server1 = app.server
+server3 = app.server
 
 # Get the port from the environment variable
 port = int(os.environ.get("PORT", 8054))
