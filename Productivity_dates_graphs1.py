@@ -40,6 +40,9 @@ def datetimeconversion(x):
 app1 = dash.Dash(__name__)
 server1 = app1.server
 
+# Get the port from the environment variable
+port = int(os.environ.get("PORT", 8051))
+
 htmlbuttons = [html.Div(html.Span('Fit-out Activities', style = {'font-family': 'Arial, sans-serif', 'font-size': '20px', 'font-weight': 'bold', 'text-decoration': 'underline'}), style={'margin-bottom': '30px', 'margin-left': '20px'})]
 htmlbuttons2 = []
 input = []
@@ -618,7 +621,7 @@ def update_button_style(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C,
     )
 
 if __name__ == '__main__':
-    app1.run_server(debug=True, port=8051)
+    app1.run_server(debug=True, port=port)
 
 
 # In[4]:
@@ -632,6 +635,9 @@ type(datetime.datetime(2023, 6, 5, 0, 0))
 
 app2 = dash.Dash(__name__)
 server2 = app2.server
+
+# Get the port from the environment variable
+port = int(os.environ.get("PORT", 8052))
 
 htmlbuttons = [html.Div(html.Span('Fit-out Activities', style = {'font-family': 'Arial, sans-serif', 'font-size': '20px', 'font-weight': 'bold', 'text-decoration': 'underline'}), style={'margin-bottom': '30px', 'margin-left': '20px'})]
 htmlbuttons2 = []
@@ -1253,83 +1259,5 @@ def update_button_style(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C,
     )
 #app2.write_html('testapp2')
 if __name__ == '__main__':
-    app2.run_server(debug=True, port=8052)
-
-
-# In[ ]:
-
-
-
-
-
-# In[6]:
-
-
-Flowlines1fig.layout.title.text ='<b>Plan v Actual activity lines North<b>'
-app4 = dash.Dash(__name__)
-
-app4.layout = html.Div([
-    html.Div([dcc.Graph(id='plot-output', figure = Flowlines1fig, style = {'width': '100%', 'height': '860px'})], style={'width': '1600px', 'position': 'absolute'})
-])
-
-#if __name__ == '__main__':
- #   app3.run(debug=True, port=8051)
-
-
-# In[7]:
-
-
-print(figadditivessth[4].layout.coloraxis)
-
-
-# In[8]:
-
-
-Flowlines1figsth.layout.title.text ='<b>Plan v Actual activity lines South<b>'
-app5 = dash.Dash(__name__)
-
-app5.layout = html.Div([dcc.Graph(id='plot-output', figure = Flowlines1figsth, style = {'width': '100%', 'height': '860px'})], style={'width': '1600px', 'position': 'absolute'})
-
-
-#if __name__ == '__main__':
- #   app4.run(debug=True, port=8051)
-
-
-# In[9]:
-
-
-app6 = dash.Dash(__name__)
-
-locationlist = ['North', 'South']
-graphlist = ['Progress flow', 'Activity lines']
-
-app6.layout = html.Div([
-    html.Div(id='dd-output-container', style={'position': 'absolute', 'width': '1600px', 'height':'860'}),
-    html.Div([html.Div([dcc.Dropdown(locationlist, 'North', id='location-dropdown', style={'width':'100px', 'backgroundColor': '#f6f6f6'})], style = {'position': 'relative', 'left': '50px'}),
-              html.Div([dcc.Dropdown(graphlist, 'Progress flow', id='graph-dropdown', style={'width':'150px', 'backgroundColor': '#f6f6f6'})], style = {'position': 'relative', 'left': '1160px'})], 
-             style={'display': 'flex', 'display-direction': 'row', 'position': 'relative', 'top': '20px'})
-])
-
-@app6.callback(
-    Output('dd-output-container', 'children'),
-    [Input('location-dropdown', 'value'),
-     Input('graph-dropdown', 'value')]
-)
-
-def update_plot_output(locationvalue, graphvalue):
-
-    if locationvalue == 'North' and graphvalue == 'Progress flow':
-        return app1.layout
-    elif locationvalue == 'South' and graphvalue == 'Progress flow':
-        return app2.layout
-    elif locationvalue == 'North' and graphvalue == 'Activity lines':
-        return app3.layout
-    elif locationvalue == 'South' and graphvalue == 'Activity lines':
-        return app4.layout
-    else:
-        raise PreventUpdate
-
-
-#if __name__ == '__main__':
- #   app5.run(debug=True, port=8051)
+    app2.run_server(debug=True, port=port)
 
