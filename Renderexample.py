@@ -9,5 +9,5 @@ app.layout = html.Div("Hello, Render!")
 
 if __name__ == "__main__":
     # Get the port from the environment variable
-    port = int(os.environ.get("PORT", 8050))
+    port = int(os.environ.get("PORT", 10000))
     app.run_server(host="0.0.0.0", port=port)
