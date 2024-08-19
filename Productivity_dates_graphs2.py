@@ -94,6 +94,10 @@ Inputs = [Input('building-dropdown', 'value'),
           Input('location-dropdown', 'value')]
 
 app = Dash(__name__)
+server1 = app.server
+
+# Get the port from the environment variable
+port = int(os.environ.get("PORT", 8054))
 app.layout = html.Div(id = 'Activity-dropdowns', children = [
      
     html.Div([dcc.Graph(id='plot-output', style = {'width': '1700px', 'height': '900px'})], style = {'position': 'absolute'}),
@@ -701,23 +705,7 @@ def update_figure_output(value_building):
     return Figure
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8054)
+    app.run(debug=True, port=port)
 
 
-# In[4]:
-
-
-all(activitiesprojectionA[0].data[0].y == np.array([None, None, None])) == True
-
-
-# In[5]:
-
-
-lastdate
-
-
-# In[6]:
-
-
-sum([i for i in range(100)])
 
