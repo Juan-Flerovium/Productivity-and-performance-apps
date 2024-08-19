@@ -586,6 +586,6 @@ def update_button_style(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C,
 
 if __name__ == '__main__':
     # Get the port from the environment variable
-    port = int(os.environ.get("PORT", 10000))
+    port = int(os.environ.get("PORT", 8053))
     app3.run_server(host="0.0.0.0", port=port)
 
