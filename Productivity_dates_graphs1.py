@@ -23,6 +23,7 @@ import plotly.express as px
 import datetime
 from datetime import date, timedelta, time
 from dash.exceptions import PreventUpdate
+import os
 
 lastdate = date(2023, 9, 29)
 def dateconversion(x):
@@ -621,7 +622,9 @@ def update_button_style(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C,
     )
 
 if __name__ == '__main__':
-    app1.run_server(debug=True, port=port)
+    # Get the port from the environment variable
+    port = int(os.environ.get("PORT", 8051))
+    app1.run_server(host = '0.0.0.0', port=port)
 
 
 # In[4]:
@@ -1257,7 +1260,9 @@ def update_button_style(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C,
         'Hide days with no progress' if n_C % 2 == 0 else 'Show days with no progress',
         'Hide forecast' if n_P % 2 == 0 else 'Show forecast'
     )
-#app2.write_html('testapp2')
+
 if __name__ == '__main__':
-    app2.run_server(debug=True, port=port)
+    # Get the port from the environment variable
+    port = int(os.environ.get("PORT", 8052))
+    app2.run_server(host ='0.0.0.0', port=port)
 
