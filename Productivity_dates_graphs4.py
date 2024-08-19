@@ -45,7 +45,7 @@ app3 = dash.Dash(__name__)
 server4 = app3.server
 
 # Get the port from the environment variable
-port = int(os.environ.get("PORT", 8053))
+port = int(os.environ.get("PORT", 10000))
 
 htmlbuttons = [html.Div(html.Span('Fit-out Activities', style = {'font-family': 'Arial, sans-serif', 'font-size': '20px', 'font-weight': 'bold', 'text-decoration': 'underline'}), style={'margin-bottom': '30px', 'margin-left': '20px'})]
 htmlbuttons2 = []
