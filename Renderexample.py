@@ -1,6 +1,6 @@
 import os
 import dash
-import dash_html_components as html
+from dash import html
 
 app = dash.Dash(__name__)
 server = app.server
