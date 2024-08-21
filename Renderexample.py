@@ -5,7 +5,7 @@ from dash import html
 app = dash.Dash(__name__)
 server = app.server
 
-app.layout = html.Div("Hello, Render!")
+app.layout = html.Div("Aloha!")
 
 if __name__ == "__main__":
     # Get the port from the environment variable
