@@ -1,7 +1,28 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[2]:
+# In[24]:
+
+
+import nbformat
+from nbconvert import PythonExporter
+
+# Load the notebook
+with open('/Users/juanfranciscolorussonotarofrancesco/Desktop/Progress Data Exports/Productivity_dates.ipynb', encoding='utf-8') as f:
+    notebook = nbformat.read(f, as_version=4)
+
+# Create a PythonExporter
+exporter = PythonExporter()
+
+# Export the notebook to Python script
+script, _ = exporter.from_notebook_node(notebook)
+
+# Write the script to a file
+with open('/Users/juanfranciscolorussonotarofrancesco/Desktop/Progress Data Exports/Productivity_dates.py', 'w', encoding='utf-8') as f:
+    f.write(script)
+
+
+# In[25]:
 
 
 import Productivity_dates
@@ -12,7 +33,33 @@ import math
 import pandas as pd
 
 
-# In[3]:
+# In[26]:
+
+
+import datetime
+from datetime import date, timedelta, time
+
+holidays = ['2025-01-01', '2024-12-26', '2024-12-25', '2024-08-26', '2024-05-27', '2024-05-06', '2024-04-01', '2024-03-29', '2024-01-01', '2023-12-26', '2023-12-25', 
+ '2023-08-28', '2023-05-29', '2023-05-08', '2023-05-01', '2023-04-10', '2023-04-07', '2023-01-02', '2022-12-30', '2022-12-29', 
+ '2022-12-28', '2022-12-27', '2022-12-26', '2022-12-23', '2022-12-22', '2022-12-21', '2022-12-20']
+
+holidays = sorted([datetime.datetime.strptime(i, '%Y-%m-%d') for i in holidays])
+offdays = holidays
+for i in range((holidays[-1]-datetime.datetime(2022, 10, 31, 0, 0)).days+5):
+    if (datetime.datetime(2022, 10, 31)+timedelta(days = i-5)).weekday() == 5:
+        offdays.append(datetime.datetime(2022, 10, 31)+timedelta(days = i-5))
+    if (datetime.datetime(2022, 10, 31)+timedelta(days = i-5)).weekday() == 6:
+        offdays.append(datetime.datetime(2022, 10, 31)+timedelta(days = i-5))
+offdays = [i.date() for i in sorted(offdays)]
+offdaysranges = [offdays[0]]
+for i in range(len(offdays)-1):
+
+    if offdays[i]+timedelta(days = 1) != offdays[i+1]:
+        offdaysranges.append(offdays[i])
+        offdaysranges.append(offdays[i+1])
+
+
+# In[27]:
 
 
 import dash
@@ -20,10 +67,8 @@ from dash import dcc, html
 from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 import plotly.express as px
-import datetime
-from datetime import date, timedelta, time
 from dash.exceptions import PreventUpdate
-import os
+import dash_daq as daq
 
 lastdate = date(2023, 9, 29)
 def dateconversion(x):
@@ -34,15 +79,17 @@ def dateconversion(x):
 
 def datetimeconversion(x):
     if type(x) == date:
-        return datetime.combine(x, time(0, 0, 0))
+        return datetime.datetime.combine(x, time(0, 0, 0))
     else:
         return x
+    
+def MAXDATE(arr):
+    return max(datetimeconversion(i) for i in arr if type(i)==datetime.datetime or type(i)==date)
+
+def mindate(arr):
+    return min(datetimeconversion(i) for i in arr if type(i)==datetime.datetime or type(i)==date)
 
 app1 = dash.Dash(__name__)
-server1 = app1.server
-
-# Get the port from the environment variable
-port = int(os.environ.get("PORT", 8051))
 
 htmlbuttons = [html.Div(html.Span('Fit-out Activities', style = {'font-family': 'Arial, sans-serif', 'font-size': '20px', 'font-weight': 'bold', 'text-decoration': 'underline'}), style={'margin-bottom': '30px', 'margin-left': '20px'})]
 htmlbuttons2 = []
@@ -51,7 +98,7 @@ output = []
 outputchildren = []
 colorset = [px.colors.qualitative.G10[i] for i in range(len(name_legend))]
 
-for i in range(len(name_legend)+4):
+for i in range(len(name_legend)+5):
     if i == 0:
         n_0 = 0
     else:
@@ -63,65 +110,80 @@ for i in range(len(name_legend)+4):
         output.append(Output('toggle-'+str(i+1)+'WP', 'style'))
         outputchildren.append(Output('toggle-'+str(i+1)+'WP', 'children'))
     elif i == len(name_legend):
-        input.append(Input('toggle-planactuals', 'n_clicks'))
-        output.append(Output('toggle-planactuals', 'style'))
-        outputchildren.append(Output('toggle-planactuals', 'children'))
-        htmlbuttons2.append(html.Button('Plan', id='toggle-planactuals', n_clicks=0, style={'width': '250px', 'backgroundColor': 'green', 'color': 'white'}))
+        input.append(Input('toggle-planns', 'on'))
+        output.append(Output('name-switch1', 'style'))
+        outputchildren.append(Output('name-switch1', 'children'))
+        htmlbuttons2.append(html.Tr([html.Td("On", id='name-switch1', style = {'font-family':'Arial, sans-serif', 'color': 'white', 'position': 'relative', 'right': '50px', 'bottom':'5px', 'backgroundColor':'green', 'padding-left': '10px', 'padding-right': '20px'}), 
+                                     html.Td(daq.BooleanSwitch(id = 'toggle-planns', on = True, color = 'green', labelPosition = 'right', style={'transform': 'scale(1.5)', 'position': 'relative', 'left': '40px'})),  
+                                     html.Td("Plans", id = 'title1', style = {'font-family':'Arial, sans-serif'})]))
     elif i == len(name_legend)+1:
-        input.append(Input('toggle-plans', 'n_clicks'))
-        output.append(Output('toggle-plans', 'style'))
-        outputchildren.append(Output('toggle-plans', 'children'))
-        htmlbuttons2.append(html.Button('Toggle planned dates', id='toggle-plans', n_clicks=0, style={'width': '250px', 'backgroundColor': 'green', 'color': 'white'}))
+        input.append(Input('toggle-actualns', 'on'))
+        output.append(Output('name-switch2', 'style'))
+        outputchildren.append(Output('name-switch2', 'children'))
+        htmlbuttons2.append(html.Tr([html.Td("On", id='name-switch2', style = {'font-family':'Arial, sans-serif', 'color': 'white', 'position': 'relative', 'right': '50px', 'bottom':'5px', 'backgroundColor':'green', 'padding-left': '10px', 'padding-right': '20px'}), 
+                                     html.Td(daq.BooleanSwitch(id = 'toggle-actualns', on = True, color = 'green', labelPosition = 'right', style={'transform': 'scale(1.5)', 'position': 'relative', 'left': '40px'})), 
+                                     html.Td("Actuals", id = 'title2', style = {'font-family':'Arial, sans-serif'})], style={'position': 'relative', 'top': '20px'}))
     elif i == len(name_legend)+2:
-        input.append(Input('toggle-absent-days', 'n_clicks'))
-        output.append(Output('toggle-absent-days', 'style'))
-        outputchildren.append(Output('toggle-absent-days', 'children'))
-        htmlbuttons2.append(html.Button('Toggle days with no progress', id='toggle-absent-days', n_clicks=0, style={'width': '250px', 'backgroundColor': 'green', 'color': 'white'}))
+        input.append(Input('toggle-flowlines', 'on'))
+        output.append(Output('name-switch3', 'style'))
+        outputchildren.append(Output('name-switch3', 'children'))
+        htmlbuttons2.append(html.Tr([html.Td("On", id='name-switch3', style = {'font-family':'Arial, sans-serif', 'color': 'white', 'position': 'relative', 'right': '50px', 'bottom':'5px', 'backgroundColor':'green', 'padding-left': '10px', 'padding-right': '20px'}), 
+                                     html.Td(daq.BooleanSwitch(id = 'toggle-flowlines', on = True, color = 'green', labelPosition = 'right', style={'transform': 'scale(1.5)', 'position': 'relative', 'left': '40px'})), 
+                                     html.Td("Flowlines", id = 'title3', style = {'font-family':'Arial, sans-serif'})], style={'position': 'relative', 'top': '40px'}))
+    elif i == len(name_legend)+3:
+        input.append(Input('toggle-absentdaysns', 'on'))
+        output.append(Output('name-switch4', 'style'))
+        outputchildren.append(Output('name-switch4', 'children'))
+        htmlbuttons2.append(html.Tr([html.Td("On", id='name-switch4', style = {'font-family':'Arial, sans-serif', 'color': 'white', 'position': 'relative', 'right': '50px', 'bottom':'5px', 'backgroundColor':'green', 'padding-left': '10px', 'padding-right': '20px'}), 
+                                     html.Td(daq.BooleanSwitch(id = 'toggle-absentdaysns', on = True, color = 'green', labelPosition = 'right', style={'transform': 'scale(1.5)', 'position': 'relative', 'left': '40px'})), 
+                                     html.Td("No progress", id = 'title4', style = {'font-family':'Arial, sans-serif'})], style={'position': 'relative', 'top': '60px'}))
     else: 
-        input.append(Input('toggle-projection-days', 'n_clicks'))
-        output.append(Output('toggle-projection-days', 'style'))
-        outputchildren.append(Output('toggle-projection-days', 'children'))
-        htmlbuttons2.append(html.Button('Toggle projection days', id='toggle-projection-days', n_clicks=0, style={'width': '250px', 'backgroundColor': 'green', 'color': 'white'}))
+        input.append(Input('toggle-projectiondaysns', 'on'))
+        output.append(Output('name-switch5', 'style'))
+        outputchildren.append(Output('name-switch5', 'children'))
+        htmlbuttons2.append(html.Tr([html.Td("On", id='name-switch5', style = {'font-family':'Arial, sans-serif', 'color': 'white', 'position': 'relative', 'right': '50px', 'bottom':'5px', 'backgroundColor':'green', 'padding-left': '10px', 'padding-right': '20px'}),
+                                     html.Td(daq.BooleanSwitch(id = 'toggle-projectiondaysns', on = True, color = 'green', labelPosition = 'right', style={'transform': 'scale(1.5)', 'position': 'relative', 'left': '40px', 'display': 'none'})),
+                                     html.Td("Projection", id = 'title5', style = {'font-family':'Arial, sans-serif'})], style={'position': 'relative', 'top': '80px'}))
     
 app1.layout = html.Div([
-    dcc.Graph(id='plot-output', style = {'width': '100%', 'height': '860px', 'backgroundColor': 'white', 'position': 'absolute'}),
+    dcc.Graph(id='plot-outputns', style = {'width': '100%', 'height': '860px', 'backgroundColor': 'white', 'position': 'absolute'}),
     html.Div(htmlbuttons, 
              style={'width': '250px', 'display':'inline-block', 'align-items': 'center', 'vertical-align': 'top',
                     'verticalAlign': 'middle', 'left':'1435px', 'top':'60px', 'position': 'relative'}),
     html.Div(htmlbuttons2, 
-             style={'display':'flex', 'flex-direction': 'row', 
-                    'position': 'relative', 'top': '570px', 'left': '22px'})], 
+             style={'display':'flex', 'flex-direction': 'column', 
+                    'position': 'relative', 'top': '240px', 'left': '1410px'})], 
     style={'width': '1720px', 'background-color': 'white', 'height': '960px'})
 
 @app1.callback(
-        Output('toggle-plans', 'n_clicks'),
-        [Input('toggle-planactuals', 'n_clicks')]
+        Output('toggle-flowlines', 'on'),
+        [Input('toggle-actualns', 'on')]
 )
 
-def update_button_click(n_A):
+def update_button_click(valueactual):
     
     return (
-            0 if n_A % 3 == 0 else 0
+            False if valueactual == False else False
         )
 
 @app1.callback(
-        [Output('toggle-absent-days', 'n_clicks'),
-         Output('toggle-projection-days', 'n_clicks')],
-        [Input('toggle-plans', 'n_clicks')]
+        [Output('toggle-absentdaysns', 'on'),
+         Output('toggle-projectiondaysns', 'on')],
+        [Input('toggle-flowlines', 'on')]
 )
 
-def update_button_click(n_R):
+def update_button_click(valueflowlines):
     
     return (
-            1 if n_R % 2 == 0 else 1,
-            1 if n_R % 2 == 0 else 1 
+            False if valueflowlines == False else False,
+            False if valueflowlines == False else False 
         )
 
 @app1.callback(
-    Output('plot-output', 'figure'),
+    Output('plot-outputns', 'figure'),
     input)
 
-def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
+def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual, valueflowlines, valueabsent, valueprojection):
 
     figs = px.line(template='seaborn', title='<b>Activities Progress WPs<b>')
     planfigs = px.line(template='seaborn')
@@ -133,7 +195,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
     if n_1WP % 2 == 0:
 
         #Add shapes for projected days
-        if n_P % 2 == 0:
+        if valueprojection == True:
             for i in range(len(figadditivesprojection[0].data)):
                 figs.add_trace(figadditivesprojection[0].data[i])
                 #Add hover data for projection
@@ -167,7 +229,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
     if n_2WP % 2 == 0:
 
         #Add shapes for projected days
-        if n_P % 2 == 0:
+        if valueprojection == True:
             for i in range(len(figadditivesprojection[1].data)):
                 figs.add_trace(figadditivesprojection[1].data[i])
                 #Add hover data for projection
@@ -201,7 +263,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
     if n_3WP % 2 == 0:
 
         #Add shapes for projected days
-        if n_P % 2 == 0:
+        if valueprojection == True:
             for i in range(len(figadditivesprojection[2].data)):
                 figs.add_trace(figadditivesprojection[2].data[i])
                 #Add hover data for projection
@@ -235,7 +297,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
     if n_4WP % 2 == 0:
 
         #Add shapes for projected days
-        if n_P % 2 == 0:
+        if valueprojection == True:
             for i in range(len(figadditivesprojection[3].data)):
                 figs.add_trace(figadditivesprojection[3].data[i])
                 #Add hover data for projection
@@ -269,7 +331,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
     if n_5WP % 2 == 0:
 
         #Add shapes for projected days
-        if n_P % 2 == 0:
+        if valueprojection == True:
             for i in range(len(figadditivesprojection[4].data)):
                 figs.add_trace(figadditivesprojection[4].data[i])
                 #Add hover data for projection
@@ -303,7 +365,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
     if n_6WP % 2 == 0:
 
         #Add shapes for projected days
-        if n_P % 2 == 0:
+        if valueprojection == True:
             for i in range(len(figadditivesprojection[5].data)):
                 figs.add_trace(figadditivesprojection[5].data[i])
                 #Add hover data for projection
@@ -337,18 +399,6 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
     if n_1WP % 2 != 0 and n_2WP % 2 != 0 and n_3WP % 2 != 0 and n_4WP % 2 != 0 and n_5WP % 2 != 0 and n_6WP % 2 != 0:
 
         raise PreventUpdate
-
-    for i in range(timegap(min(workingdays), max(workingdays))):
-        if min(workingdays)+timedelta(days=i) not in workingdays:
-            nonworkingdays.append(min(workingdays)+timedelta(days=i))
-
-    nonworkingdaysranges = [nonworkingdays[0]]
-    
-    for i in range(len(nonworkingdays)-1):
-        if nonworkingdays[i]+timedelta(days=1) != nonworkingdays[i+1]:
-            nonworkingdaysranges.append(nonworkingdays[i]+timedelta(days=1))
-            nonworkingdaysranges.append(nonworkingdays[i+1])
-    nonworkingdaysranges.append(nonworkingdays[-1]+timedelta(days=1))
     
     figs.update_layout(showlegend = False)
 
@@ -405,9 +455,26 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
         finished = False
     else:
         finished = True
+    
+    for i in range(timegap(min(workingdays), max(workingdays))):
+        if min(workingdays)+timedelta(days=i) not in workingdays and min(workingdays)+timedelta(days=i) not in offdays:
+            nonworkingdays.append(min(workingdays)+timedelta(days=i))
+    #Add last set of nonworking days
+    if finished == False and sorted(list(set(workingdays)))[-1]+timedelta(days=1) < lastdate:
+        for i in range(timegap(sorted(list(set(workingdays)))[-1]+timedelta(days=1), lastdate)):
+            if sorted(list(set(workingdays)))[-1]+timedelta(days=1)+timedelta(days=i) not in offdays:
+                nonworkingdays.append(sorted(list(set(workingdays)))[-1]+timedelta(days=1)+timedelta(days=i))
+
+    nonworkingdaysranges = [nonworkingdays[0]]
+    
+    for i in range(len(nonworkingdays)-1):
+        if nonworkingdays[i]+timedelta(days=1) != nonworkingdays[i+1]:
+            nonworkingdaysranges.append(nonworkingdays[i]+timedelta(days=1))
+            nonworkingdaysranges.append(nonworkingdays[i+1])
+    nonworkingdaysranges.append(nonworkingdays[-1]+timedelta(days=1))
 
     #Add dashed line for last measurement and annotation
-    if n_P % 2 == 0 and finished == False:
+    if valueprojection == True and finished == False:
         figs.add_shape(type="line",
                                 x0=lastdate, x1=lastdate,
                                 y0=0, y1=1,
@@ -428,15 +495,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
                                 arrowcolor = 'rgba(0,0,0,0)')
 
     #Add shapes for absent days
-    if n_C % 2 == 0:
-        if finished == False and sorted(list(set(workingdays)))[-1]+timedelta(days=1) < lastdate:
-            figs.add_shape(type="rect",
-              x0=sorted(list(set(workingdays)))[-1]+timedelta(days=1), x1=lastdate,
-              y0=0, y1=1,
-              xref='x', yref='paper',
-              line=dict(color="black", width=1.5),
-              fillcolor = 'black',
-              opacity = 0.1)
+    if valueabsent == True:
         for i in range(len(nonworkingdaysranges)//2):
             figs.add_shape(type="rect",
               x0=nonworkingdaysranges[2*i], x1=nonworkingdaysranges[2*i+1],
@@ -444,7 +503,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
               xref='x', yref='paper',
               line=dict(color="black", width=1.5),
               fillcolor = 'black',
-              opacity = 0.1)
+              opacity = 0.15)
 
     figs.update_layout(showlegend = False)
 
@@ -459,7 +518,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
 
     figs.update_layout(yaxis = dict(tickmode='array', tickvals = [i for i in range(cladding_dates[1][1][-2])], ticktext = ['']*cladding_dates[1][1][-2], range = [-0.7, 13.7], title_standoff = 50))
     
-    if n_A % 3 == 0:
+    if valueactual == False and valueplan == True:
 
         planfigs.update_layout(showlegend = False)
         #Update size of plot
@@ -467,6 +526,10 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
         #Use extra data to ensure that xaxis range is fixed
         planfigs.update_layout(yaxis = dict(tickmode='array', tickvals = [i for i in range(cladding_dates[1][1][-2])], ticktext = ['']*cladding_dates[1][1][-2], range = [-0.7, 13.7], title_standoff = 50),
                            xaxis = dict(range = [date(2022, 10, 31)-timedelta(days=5), lastdate+timedelta(days=5)]))
+        #Add weekends and holidays
+        for Days in range(0, len(offdaysranges)-1, 2):
+            if datetimeconversion(offdaysranges[Days])>=datetime.datetime(2022, 10, 31, 0, 0)-timedelta(days=5) and datetimeconversion(offdaysranges[Days+1]) < datetimeconversion(maxrange)+timedelta(days=5):
+                planfigs.add_shape(type = 'rect', x0 = datetimeconversion(offdaysranges[Days]), x1 = datetimeconversion(offdaysranges[Days+1])+timedelta(days=1), y0 = 0, y1 = 1, xref = 'x', yref = 'paper', line=dict(color="rgba(0, 0, 0, 0)", width=1.5), fillcolor = '#6d6b15', opacity = 0.25, layer = 'below')
         planfigs.update_layout(title = dict(text = '<b>Flowlines Fit-out - North Building (Plan)<b>', font = dict(size = 25)))
         toprightfigs = px.line(x = [lastdate+timedelta(days=5), lastdate+timedelta(days=5)], y = [13, 13])
         toprightfigs.update_traces(hoverinfo = 'none', hovertemplate = None)
@@ -476,7 +539,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
         planfigs.add_traces(bottomleftfigs.data[0])
         return planfigs
     
-    elif n_A % 3 == 1 and n_R % 2 == 0:
+    elif valueactual == True and valueplan == True and valueflowlines == False:
         for i in range(len(planfigs.data)):
             planactualfigs.add_trace(planfigs.data[i])
         for i in range(len(actualfigs.data)):
@@ -488,6 +551,10 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
         maxrange = max([datetimeconversion(i) for i in np.concatenate([i.x for i in planactualfigs.data]) if type(i) == datetime.date or type(i) == datetime.datetime])
         planactualfigs.update_layout(yaxis = dict(tickmode='array', tickvals = [i for i in range(cladding_dates[1][1][-2])], ticktext = ['']*cladding_dates[1][1][-2], range = [-0.7, 13.7], title_standoff = 50),
                            xaxis = dict(range = [date(2022, 10, 31)-timedelta(days=5), maxrange+timedelta(days=5)]))
+        #Add weekends and holidays
+        for Days in range(0, len(offdaysranges)-1, 2):
+            if datetimeconversion(offdaysranges[Days])>=datetime.datetime(2022, 10, 31, 0, 0)-timedelta(days=5) and datetimeconversion(offdaysranges[Days+1]) < datetimeconversion(maxrange)+timedelta(days=5):
+                planactualfigs.add_shape(type = 'rect', x0 = datetimeconversion(offdaysranges[Days]), x1 = datetimeconversion(offdaysranges[Days+1])+timedelta(days=1), y0 = 0, y1 = 1, xref = 'x', yref = 'paper', line=dict(color="rgba(0, 0, 0, 0)", width=1.5), fillcolor = '#6d6b15', opacity = 0.25, layer = 'below')
         planactualfigs.update_layout(title = dict(text = '<b>Flowlines Fit-out - North Building (Plan v Actual)<b>', font = dict(size = 25)))
         toprightfigs = px.line(x = [maxrange+timedelta(days=5), maxrange+timedelta(days=5)], y = [13, 13])
         toprightfigs.update_traces(hoverinfo = 'none', hovertemplate = None)
@@ -497,13 +564,35 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
         planactualfigs.add_traces(bottomleftfigs.data[0])
         return planactualfigs
         
-    elif n_A % 3 == 1 and n_R % 2 == 1:
+    elif valueactual == True and valueplan == True and valueflowlines == True:
 
         for i in range(len(planfigs.data)):
             figs.add_trace(planfigs.data[i])
         figs.update_layout(title = dict(text = '<b>Flowlines Fit-out - North Building (Plan v Actual)<b>', font = dict(size = 25)))
         #Use extra data to ensure that xaxis range is fixed
         maxrange = max([datetimeconversion(i) for i in np.concatenate([i.x for i in figs.data]) if type(i) == datetime.date or type(i) == datetime.datetime])
+        #In the case the furthest point is a shaded rectangle
+        if [dateconversion(i.x1) for i in figs.layout.shapes if i.type == 'rect' and i.fillcolor == 'black'] != []:
+            if max([dateconversion(i.x1) for i in figs.layout.shapes if i.type == 'rect' and i.fillcolor == 'black']) > dateconversion(maxrange):
+                maxrange = max([dateconversion(i.x1) for i in figs.layout.shapes if i.type == 'rect' and i.fillcolor == 'black']) 
+        #Add weekends and holidays
+        for Days in range(0, len(offdaysranges)-1, 2):
+            if datetimeconversion(offdaysranges[Days])>=datetime.datetime(2022, 10, 31, 0, 0)-timedelta(days=5) and datetimeconversion(offdaysranges[Days+1]) < datetimeconversion(maxrange)+timedelta(days=5):
+                figs.add_shape(type = 'rect', x0 = datetimeconversion(offdaysranges[Days]), x1 = datetimeconversion(offdaysranges[Days+1])+timedelta(days=1), y0 = 0, y1 = 1, xref = 'x', yref = 'paper', line=dict(color="rgba(0, 0, 0, 0)", width=1.5), fillcolor = '#6d6b15', opacity = 0.25, layer = 'below')
+        #Add text regarding percentage of days without progress
+        if valueabsent == True and len(workingdays) != 0:
+            if finished:
+                Maxdate = maxrange
+            else:
+                Maxdate = lastdate
+            
+            #Calculate ratio by summing the ranges of the shaded rectangles
+            nonholidayweekdays = 0
+            for i in range((MAXDATE(np.concatenate([i.x for i in figs.data if i.line.dash == 'solid' and i.line.color != 'black']))-mindate(np.concatenate([i.x for i in figs.data if i.line.dash == 'solid' and i.line.color != 'black']))).days):
+                if mindate(np.concatenate([i.x for i in figs.data]))+timedelta(days=i) not in offdays:
+                    nonholidayweekdays += 1 
+            nonworkingratio = sum([(i.x1-i.x0).days for i in figs.layout.shapes if i.type == 'rect' and i.fillcolor == 'black'])/nonholidayweekdays
+            figs.add_annotation(x = 0, y = 13.25, text = 'Percentage of days with no progress: '+str(round(100*nonworkingratio))+'%', xref = 'paper', yref = 'y', showarrow = False, font = dict(size = 15))
         toprightfigs = px.line(x = [maxrange+timedelta(days=5), maxrange+timedelta(days=5)], y = [13, 13])
         toprightfigs.update_traces(hoverinfo = 'none', hovertemplate = None)
         bottomleftfigs = px.line(x = [date(2022, 10, 31)-timedelta(days=5), date(2022, 10, 31)-timedelta(days=5)], y = [0, 0])
@@ -512,7 +601,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
         figs.add_traces(bottomleftfigs.data[0])
         return figs
     
-    elif n_A % 3 == 2 and n_R % 2 == 0:
+    elif valueactual == True and valueplan == False and valueflowlines == False:
 
         actualfigs.update_layout(showlegend = False)
         #Update size of plot
@@ -521,6 +610,10 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
         maxrange = max([datetimeconversion(i) for i in np.concatenate([i.x for i in actualfigs.data]) if type(i) == datetime.date or type(i) == datetime.datetime])
         actualfigs.update_layout(yaxis = dict(tickmode='array', tickvals = [i for i in range(cladding_dates[1][1][-2])], ticktext = ['']*cladding_dates[1][1][-2], range = [-0.7, 13.7], title_standoff = 50),
                            xaxis = dict(range = [date(2022, 10, 31)-timedelta(days=5), maxrange+timedelta(days=5)]))
+        #Add weekends and holidays
+        for Days in range(0, len(offdaysranges)-1, 2):
+            if datetimeconversion(offdaysranges[Days])>=datetime.datetime(2022, 10, 31, 0, 0)-timedelta(days=5) and datetimeconversion(offdaysranges[Days+1]) < maxrange+timedelta(days=5):
+                actualfigs.add_shape(type = 'rect', x0 = datetimeconversion(offdaysranges[Days]), x1 = datetimeconversion(offdaysranges[Days+1])+timedelta(days=1), y0 = 0, y1 = 1, xref = 'x', yref = 'paper', line=dict(color="rgba(0, 0, 0, 0)", width=1.5), fillcolor = '#6d6b15', opacity = 0.25, layer = 'below')
         actualfigs.update_layout(title = dict(text = '<b>Flowlines Fit-out - North Building (Actual)<b>', font = dict(size = 25)))
         toprightfigs = px.line(x = [maxrange+timedelta(days=5), maxrange+timedelta(days=5)], y = [13, 13])
         toprightfigs.update_traces(hoverinfo = 'none', hovertemplate = None)
@@ -530,10 +623,32 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
         actualfigs.add_traces(bottomleftfigs.data[0])
         return actualfigs
 
-    else:
+    elif valueactual == True and valueplan == False and valueflowlines == True:
         figs.update_layout(title = dict(text = '<b>Flowlines Fit-out - North Building (Actual)<b>', font = dict(size = 25)))
         #Use extra data to ensure that xaxis range is fixed
         maxrange = max([datetimeconversion(i) for i in np.concatenate([i.x for i in figs.data]) if type(i) == datetime.date or type(i) == datetime.datetime])
+        #In the case the furthest point is a shaded rectangle
+        if [dateconversion(i.x1) for i in figs.layout.shapes if i.type == 'rect' and i.fillcolor == 'black'] != []:
+            if max([dateconversion(i.x1) for i in figs.layout.shapes if i.type == 'rect' and i.fillcolor == 'black']) > dateconversion(maxrange):
+                maxrange = max([dateconversion(i.x1) for i in figs.layout.shapes if i.type == 'rect' and i.fillcolor == 'black']) 
+        #Add weekends and holidays
+        for Days in range(0, len(offdaysranges)-1, 2):
+            if datetimeconversion(offdaysranges[Days])>=datetime.datetime(2022, 10, 31, 0, 0)-timedelta(days=5) and datetimeconversion(offdaysranges[Days+1]) < datetimeconversion(maxrange)+timedelta(days=5):
+                figs.add_shape(type = 'rect', x0 = datetimeconversion(offdaysranges[Days]), x1 = datetimeconversion(offdaysranges[Days+1])+timedelta(days=1), y0 = 0, y1 = 1, xref = 'x', yref = 'paper', line=dict(color="rgba(0, 0, 0, 0)", width=1.5), fillcolor = '#6d6b15', opacity = 0.25, layer = 'below')
+        #Add text regarding percentage of days without progress
+        if valueabsent == True and len(workingdays) != 0:
+            if finished:
+                Maxdate = maxrange
+            else:
+                Maxdate = lastdate
+            
+            #Calculate ratio by summing the ranges of the shaded rectangles
+            nonholidayweekdays = 0
+            for i in range((MAXDATE(np.concatenate([i.x for i in figs.data if i.line.dash == 'solid' and i.line.color != 'black']))-mindate(np.concatenate([i.x for i in figs.data if i.line.dash == 'solid' and i.line.color != 'black']))).days):
+                if mindate(np.concatenate([i.x for i in figs.data]))+timedelta(days=i) not in offdays:
+                    nonholidayweekdays += 1 
+            nonworkingratio = sum([(i.x1-i.x0).days for i in figs.layout.shapes if i.type == 'rect' and i.fillcolor == 'black'])/nonholidayweekdays
+            figs.add_annotation(x = 0, y = 13.25, text = 'Percentage of days with no progress: '+str(round(100*nonworkingratio))+'%', xref = 'paper', yref = 'y', showarrow = False, font = dict(size = 15))
         toprightfigs = px.line(x = [maxrange+timedelta(days=5), maxrange+timedelta(days=5)], y = [13, 13])
         toprightfigs.update_traces(hoverinfo = 'none', hovertemplate = None)
         bottomleftfigs = px.line(x = [date(2022, 10, 31)-timedelta(days=5), date(2022, 10, 31)-timedelta(days=5)], y = [0, 0])
@@ -542,44 +657,31 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
         figs.add_traces(bottomleftfigs.data[0])
         return figs
     
+    else:
+        raise PreventUpdate
+    
 @app1.callback(
     output,
     input
 )
-def update_button_style(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
+def update_button_style(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual, valueflowlines, valueabsent, valueprojection):
     # Default style for buttons
-    default_style = {'width': '100%', 'backgroundColor': 'white', 'color': 'black', 'margin-bottom':'5px', 'margin-bottom':'5px', 'height': '30px', 'border-radius': '10px', 'text-align': 'left',
-                     'border-width': '0'}
+    default_style = {'width': '100%', 'backgroundColor': 'white', 'color': 'black', 'margin-bottom':'5px', 'margin-bottom':'5px', 'height': '30px', 'border-radius': '10px', 'text-align': 'left', 'border-width': '0'}
     active_style = default_style.copy()
     default_style['color'] = 'black'
     active_style['color'] = '#aaa'
-    default_style0 = {'backgroundColor': 'green', 'color': 'white', 'height': '30px', 'border-radius': '15px', 'position': 'relative', 'left': '20px', 'width': '210px', 'border-width': '0'}
-    active_styleA = default_style0.copy()
-    active_styleB = default_style0.copy()
-    default_style0['background-color'] = 'green'
-    active_styleA['background-color'] = 'red'
-    active_styleB['background-color'] = 'blue'
-    default_style1 = {'backgroundColor': 'green', 'color': 'white', 'height': '30px', 'border-radius': '15px', 'position': 'relative', 'left': '148px', 'width': '210px', 'border-width': '0'}
-    active_style1 = default_style1.copy()
-    default_style1['background-color'] = 'green'
-    active_style1['background-color'] = 'red'
-    if n_A % 3 == 0:
+    default_style0 = {'font-family':'Arial, sans-serif', 'backgroundColor': 'green', 'color': 'white', 'height': '38px', 'border-radius': '19px', 'margin-top': '0px', 'width': '100px', 'border-width': '0', 'position': 'relative', 'left': '30px', 'bottom': '5px', 'text-align': 'left', 'padding-left': '15px'}
+    active_style0 = {'font-family':'Arial, sans-serif', 'backgroundColor': '#e6e6e6', 'color': 'white', 'height': '38px', 'border-radius': '19px', 'margin-top': '0px', 'width': '100px', 'border-width': '0', 'position': 'relative', 'left': '30px', 'bottom': '5px', 'text-align': 'right', 'padding-right': '15px'}
+    default_style1 = {'font-family':'Arial, sans-serif', 'backgroundColor': 'green', 'color': 'white', 'height': '38px', 'border-radius': '19px', 'margin-top': '10px', 'width': '100px', 'border-width': '0', 'position': 'relative', 'left': '30px', 'bottom': '5px', 'text-align': 'left', 'padding-left': '15px'}
+    active_style1 = {'font-family':'Arial, sans-serif', 'backgroundColor': '#e6e6e6', 'color': 'white', 'height': '38px', 'border-radius': '19px', 'margin-top': '10px', 'width': '100px', 'border-width': '0', 'position': 'relative', 'left': '30px', 'bottom': '5px', 'text-align': 'right', 'padding-right': '15px'}
+    if valueactual == False:
         default_style1['display'] = 'None'
         active_style1['display'] = 'None'
-    default_style2 = {'backgroundColor': 'green', 'color': 'white', 'height': '30px', 'border-radius': '15px', 'position': 'relative', 'left': '276px', 'width': '210px', 'border-width': '0'}
-    active_style2 = default_style2.copy()
-    default_style2['background-color'] = 'green'
-    active_style2['background-color'] = 'red'
-    if n_A % 3 == 0 or n_R % 2 == 0:
+    default_style2 = {'font-family':'Arial, sans-serif', 'backgroundColor': 'green', 'color': 'white', 'height': '38px', 'border-radius': '19px', 'margin-top': '10px', 'width': '100px', 'border-width': '0', 'position': 'relative', 'left': '30px', 'bottom': '5px', 'text-align': 'left', 'padding-left': '15px'}
+    active_style2 = {'font-family':'Arial, sans-serif', 'backgroundColor': '#e6e6e6', 'color': 'white', 'height': '38px', 'border-radius': '19px', 'margin-top': '10px', 'width': '100px', 'border-width': '0', 'position': 'relative', 'left': '30px', 'bottom': '5px', 'text-align': 'right', 'padding-right': '15px'}
+    if valueactual == False or valueflowlines == False:
         default_style2['display'] = 'None'
         active_style2['display'] = 'None'
-    default_style3 = {'backgroundColor': 'green', 'color': 'white', 'height': '30px', 'border-radius': '15px', 'position': 'relative', 'left': '404px', 'width': '210px', 'border-width': '0'}
-    active_style3 = default_style3.copy()
-    default_style3['background-color'] = 'green'
-    active_style3['background-color'] = 'red'
-    if n_A % 3 == 0 or n_R % 2 == 0:
-        default_style3['display'] = 'None'
-        active_style3['display'] = 'None'
 
     return (
         default_style if n_1WP % 2 == 0 else active_style,
@@ -588,17 +690,94 @@ def update_button_style(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C,
         default_style if n_4WP % 2 == 0 else active_style,
         default_style if n_5WP % 2 == 0 else active_style,
         default_style if n_6WP % 2 == 0 else active_style,
-        default_style0 if n_A % 3 == 0 else active_styleA if n_A % 3 == 1 else active_styleB,
-        default_style1 if n_R % 2 == 0 else active_style1,
-        default_style2 if n_C % 2 == 0 else active_style2,
-        default_style3 if n_P % 2 == 0 else active_style3,
+        default_style0 if valueplan == True else active_style0,
+        default_style0 if valueactual == True else active_style0,
+        default_style1 if valueflowlines == True else active_style1,
+        default_style2 if valueabsent == True else active_style2,
+        default_style2 if valueprojection == True else active_style2
+    )
+
+@app1.callback(
+    [Output('toggle-planns', 'style'),
+     Output('toggle-actualns', 'style'),
+     Output('toggle-flowlines', 'style'),
+     Output('toggle-absentdaysns', 'style'),
+     Output('toggle-projectiondaysns', 'style')],
+    [Input('toggle-planns', 'on'),
+     Input('toggle-actualns', 'on'),
+     Input('toggle-flowlines', 'on'),
+     Input('toggle-absentdaysns', 'on'),
+     Input('toggle-projectiondaysns', 'on')]
+)
+
+def update_button_style(valueplan, valueactual, valueflowlines, valueabsent, valueprojection):
+    # Default style for buttons
+    default_style = {'transform': 'scale(1.4)', 'position': 'relative', 'right': '32px'}
+    active_style = {'transform': 'scale(1.4)', 'position': 'relative', 'right': '80px'}
+    default_style1 = {'transform': 'scale(1.4)', 'position': 'relative', 'right': '32px'}
+    active_style1 = {'transform': 'scale(1.4)', 'position': 'relative', 'right': '80px'}
+    default_style2 = {'transform': 'scale(1.4)', 'position': 'relative', 'right': '32px'}
+    active_style2 = {'transform': 'scale(1.4)', 'position': 'relative', 'right': '80px'}
+    if valueactual == False:
+        default_style1 = {'opacity': '0'}
+        active_style1 = {'opacity': '0'}
+        default_style2 = {'opacity': '0'}
+        active_style2 = {'opacity': '0'}
+    if valueflowlines == False:
+        default_style2 = {'opacity': '0'}
+        active_style2 = {'opacity': '0'}
+
+    return (
+        default_style if valueplan == True else active_style,
+        default_style if valueactual == True else active_style,
+        default_style1 if valueflowlines == True else active_style1,
+        default_style2 if valueabsent == True else active_style2,
+        default_style2 if valueprojection == True else active_style2
+    )
+
+@app1.callback(
+    [Output('title1', 'style'),
+     Output('title2', 'style'),
+     Output('title3', 'style'),
+     Output('title4', 'style'),
+     Output('title5', 'style')],
+    [Input('toggle-planns', 'on'),
+     Input('toggle-actualns', 'on'),
+     Input('toggle-flowlines', 'on'),
+     Input('toggle-absentdaysns', 'on'),
+     Input('toggle-projectiondaysns', 'on')]
+)
+
+def update_button_style(valueplan, valueactual, valueflowlines, valueabsent, valueprojection):
+    # Default style for buttons
+    default_style = {'font-family':'Arial, sans-serif', 'position': 'relative', 'right': '12px', 'bottom': '5px'}
+    active_style = {'font-family':'Arial, sans-serif', 'position': 'relative', 'right': '12px', 'bottom': '5px'}
+    default_style1 = {'font-family':'Arial, sans-serif', 'position': 'relative', 'right': '12px', 'bottom': '5px'}
+    active_style1 = {'font-family':'Arial, sans-serif', 'position': 'relative', 'right': '12px', 'bottom': '5px'}
+    default_style2 = {'font-family':'Arial, sans-serif', 'position': 'relative', 'right': '12px', 'bottom': '5px'}
+    active_style2 = {'font-family':'Arial, sans-serif', 'position': 'relative', 'right': '12px', 'bottom': '5px'}
+    if valueactual == False:
+        default_style1 = {'opacity': '0'}
+        active_style1 = {'opacity': '0'}
+        default_style2 = {'opacity': '0'}
+        active_style2 = {'opacity': '0'}
+    if valueflowlines == False:
+        default_style2 = {'opacity': '0'}
+        active_style2 = {'opacity': '0'}
+
+    return (
+        default_style if valueplan == True else active_style,
+        default_style if valueactual == True else active_style,
+        default_style1 if valueflowlines == True else active_style1,
+        default_style2 if valueabsent == True else active_style2,
+        default_style2 if valueprojection == True else active_style2
     )
 
 @app1.callback(
     outputchildren,
     input
 )
-def update_button_style(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
+def update_button_children(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual, valueflowlines, valueabsent, valueprojection):
     on = []
     off = []
     # Change button style
@@ -615,32 +794,21 @@ def update_button_style(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C,
         on[3] if n_4WP % 2 == 0 else off[3],
         on[4] if n_5WP % 2 == 0 else off[4],
         on[5] if n_6WP % 2 == 0 else off[5],
-        'Show Plan and Actual' if n_A % 3 == 0 else 'Show Actual' if n_A % 3 == 1 else 'Show Plan',
-        'Thin Flowlines' if n_R % 2 == 0 else 'Line of balance',
-        'Hide days with no progress' if n_C % 2 == 0 else 'Show days with no progress',
-        'Hide forecast' if n_P % 2 == 0 else 'Show forecast'
+        'On' if valueplan == True else 'Off',
+        'On' if valueactual == True else 'Off',
+        'On' if valueflowlines == True else 'Off',
+        'On' if valueabsent == True else 'Off',
+        'On' if valueprojection == True else 'Off'
     )
 
 if __name__ == '__main__':
-    # Get the port from the environment variable
-    port = int(os.environ.get("PORT", 8051))
-    app1.run_server(host = '0.0.0.0', port=port)
+    app1.run_server(debug=True, port=8051)
 
 
-# In[4]:
-
-
-type(datetime.datetime(2023, 6, 5, 0, 0))
-
-
-# In[5]:
+# In[28]:
 
 
 app2 = dash.Dash(__name__)
-server2 = app2.server
-
-# Get the port from the environment variable
-port = int(os.environ.get("PORT", 8052))
 
 htmlbuttons = [html.Div(html.Span('Fit-out Activities', style = {'font-family': 'Arial, sans-serif', 'font-size': '20px', 'font-weight': 'bold', 'text-decoration': 'underline'}), style={'margin-bottom': '30px', 'margin-left': '20px'})]
 htmlbuttons2 = []
@@ -649,7 +817,7 @@ output = []
 outputchildren = []
 colorset = [px.colors.qualitative.G10[i] for i in range(len(name_legend))]
 
-for i in range(len(name_legend)+4):
+for i in range(len(name_legend)+5):
     if i == 0:
         n_0 = 0
     else:
@@ -661,65 +829,80 @@ for i in range(len(name_legend)+4):
         output.append(Output('toggle-'+str(i+1)+'WPsth', 'style'))
         outputchildren.append(Output('toggle-'+str(i+1)+'WPsth', 'children'))
     elif i == len(name_legend):
-        input.append(Input('toggle-planactualssth', 'n_clicks'))
-        output.append(Output('toggle-planactualssth', 'style'))
-        outputchildren.append(Output('toggle-planactualssth', 'children'))
-        htmlbuttons2.append(html.Button('Plan', id='toggle-planactualssth', n_clicks=0, style={'width': '250px', 'backgroundColor': 'green', 'color': 'white'}))
+        input.append(Input('toggle-planns', 'on'))
+        output.append(Output('name-switch1', 'style'))
+        outputchildren.append(Output('name-switch1', 'children'))
+        htmlbuttons2.append(html.Tr([html.Td("On", id='name-switch1', style = {'font-family':'Arial, sans-serif', 'color': 'white', 'position': 'relative', 'right': '50px', 'bottom':'5px', 'backgroundColor':'green', 'padding-left': '10px', 'padding-right': '20px'}), 
+                                     html.Td(daq.BooleanSwitch(id = 'toggle-planns', on = True, color = 'green', labelPosition = 'right', style={'transform': 'scale(1.5)', 'position': 'relative', 'left': '40px'})),  
+                                     html.Td("Plans", id = 'title1', style = {'font-family':'Arial, sans-serif'})]))
     elif i == len(name_legend)+1:
-        input.append(Input('toggle-planssth', 'n_clicks'))
-        output.append(Output('toggle-planssth', 'style'))
-        outputchildren.append(Output('toggle-planssth', 'children'))
-        htmlbuttons2.append(html.Button('Toggle planned dates', id='toggle-planssth', n_clicks=0, style={'width': '250px', 'backgroundColor': 'green', 'color': 'white'}))
+        input.append(Input('toggle-actualns', 'on'))
+        output.append(Output('name-switch2', 'style'))
+        outputchildren.append(Output('name-switch2', 'children'))
+        htmlbuttons2.append(html.Tr([html.Td("On", id='name-switch2', style = {'font-family':'Arial, sans-serif', 'color': 'white', 'position': 'relative', 'right': '50px', 'bottom':'5px', 'backgroundColor':'green', 'padding-left': '10px', 'padding-right': '20px'}), 
+                                     html.Td(daq.BooleanSwitch(id = 'toggle-actualns', on = True, color = 'green', labelPosition = 'right', style={'transform': 'scale(1.5)', 'position': 'relative', 'left': '40px'})), 
+                                     html.Td("Actuals", id = 'title2', style = {'font-family':'Arial, sans-serif'})], style={'position': 'relative', 'top': '20px'}))
     elif i == len(name_legend)+2:
-        input.append(Input('toggle-absent-dayssth', 'n_clicks'))
-        output.append(Output('toggle-absent-dayssth', 'style'))
-        outputchildren.append(Output('toggle-absent-dayssth', 'children'))
-        htmlbuttons2.append(html.Button('Toggle days with no progress', id='toggle-absent-dayssth', n_clicks=1, style={'width': '250px', 'backgroundColor': 'green', 'color': 'white'}))
+        input.append(Input('toggle-flowlines', 'on'))
+        output.append(Output('name-switch3', 'style'))
+        outputchildren.append(Output('name-switch3', 'children'))
+        htmlbuttons2.append(html.Tr([html.Td("On", id='name-switch3', style = {'font-family':'Arial, sans-serif', 'color': 'white', 'position': 'relative', 'right': '50px', 'bottom':'5px', 'backgroundColor':'green', 'padding-left': '10px', 'padding-right': '20px'}), 
+                                     html.Td(daq.BooleanSwitch(id = 'toggle-flowlines', on = True, color = 'green', labelPosition = 'right', style={'transform': 'scale(1.5)', 'position': 'relative', 'left': '40px'})), 
+                                     html.Td("Flowlines", id = 'title3', style = {'font-family':'Arial, sans-serif'})], style={'position': 'relative', 'top': '40px'}))
+    elif i == len(name_legend)+3:
+        input.append(Input('toggle-absentdaysns', 'on'))
+        output.append(Output('name-switch4', 'style'))
+        outputchildren.append(Output('name-switch4', 'children'))
+        htmlbuttons2.append(html.Tr([html.Td("On", id='name-switch4', style = {'font-family':'Arial, sans-serif', 'color': 'white', 'position': 'relative', 'right': '50px', 'bottom':'5px', 'backgroundColor':'green', 'padding-left': '10px', 'padding-right': '20px'}), 
+                                     html.Td(daq.BooleanSwitch(id = 'toggle-absentdaysns', on = True, color = 'green', labelPosition = 'right', style={'transform': 'scale(1.5)', 'position': 'relative', 'left': '40px'})), 
+                                     html.Td("No progress", id = 'title4', style = {'font-family':'Arial, sans-serif'})], style={'position': 'relative', 'top': '60px'}))
     else: 
-        input.append(Input('toggle-projection-dayssth', 'n_clicks'))
-        output.append(Output('toggle-projection-dayssth', 'style'))
-        outputchildren.append(Output('toggle-projection-dayssth', 'children'))
-        htmlbuttons2.append(html.Button('Toggle projection days', id='toggle-projection-dayssth', n_clicks=1, style={'width': '250px', 'backgroundColor': 'green', 'color': 'white'}))
+        input.append(Input('toggle-projectiondaysns', 'on'))
+        output.append(Output('name-switch5', 'style'))
+        outputchildren.append(Output('name-switch5', 'children'))
+        htmlbuttons2.append(html.Tr([html.Td("On", id='name-switch5', style = {'font-family':'Arial, sans-serif', 'color': 'white', 'position': 'relative', 'right': '50px', 'bottom':'5px', 'backgroundColor':'green', 'padding-left': '10px', 'padding-right': '20px'}),
+                                     html.Td(daq.BooleanSwitch(id = 'toggle-projectiondaysns', on = True, color = 'green', labelPosition = 'right', style={'transform': 'scale(1.5)', 'position': 'relative', 'left': '40px', 'display': 'none'})),
+                                     html.Td("Projection", id = 'title5', style = {'font-family':'Arial, sans-serif'})], style={'position': 'relative', 'top': '80px'}))
     
 app2.layout = html.Div([
-    dcc.Graph(id='plot-outputsth', style = {'width': '100%', 'height': '860px', 'backgroundColor': 'white', 'position': 'absolute'}),
+    dcc.Graph(id='plot-outputns', style = {'width': '100%', 'height': '860px', 'backgroundColor': 'white', 'position': 'absolute'}),
     html.Div(htmlbuttons, 
              style={'width': '250px', 'display':'inline-block', 'align-items': 'center', 'vertical-align': 'top',
                     'verticalAlign': 'middle', 'left':'1435px', 'top':'60px', 'position': 'relative'}),
     html.Div(htmlbuttons2, 
-             style={'display':'flex', 'flex-direction': 'row', 
-                    'position': 'relative', 'top': '570px', 'left': '22px'})], 
+             style={'display':'flex', 'flex-direction': 'column', 
+                    'position': 'relative', 'top': '240px', 'left': '1410px'})], 
     style={'width': '1720px', 'background-color': 'white', 'height': '960px'})
 
 @app2.callback(
-        Output('toggle-planssth', 'n_clicks'),
-        [Input('toggle-planactualssth', 'n_clicks')]
+        Output('toggle-flowlines', 'on'),
+        [Input('toggle-actualns', 'on')]
 )
 
-def update_button_click(n_A):
+def update_button_click(valueactual):
     
     return (
-            0 if n_A % 3 == 0 else 0
+            False if valueactual == False else False
         )
 
 @app2.callback(
-        [Output('toggle-absent-dayssth', 'n_clicks'),
-         Output('toggle-projection-dayssth', 'n_clicks')],
-        [Input('toggle-planssth', 'n_clicks')]
+        [Output('toggle-absentdaysns', 'on'),
+         Output('toggle-projectiondaysns', 'on')],
+        [Input('toggle-flowlines', 'on')]
 )
 
-def update_button_click(n_R):
+def update_button_click(valueflowlines):
     
     return (
-            1 if n_R % 2 == 0 else 1,
-            1 if n_R % 2 == 0 else 1 
+            False if valueflowlines == False else False,
+            False if valueflowlines == False else False 
         )
 
 @app2.callback(
-    Output('plot-outputsth', 'figure'),
+    Output('plot-outputns', 'figure'),
     input)
 
-def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
+def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual, valueflowlines, valueabsent, valueprojection):
 
     figs = px.line(template='seaborn', title='<b>Activities Progress WPs<b>')
     planfigs = px.line(template='seaborn')
@@ -731,7 +914,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
     if n_1WP % 2 == 0:
 
         #Add shapes for projected days
-        if n_P % 2 == 0:
+        if valueprojection == True:
             for i in range(len(figadditivessthprojection[0].data)):
                 figs.add_trace(figadditivessthprojection[0].data[i])
                 #Add hover data for projection
@@ -765,7 +948,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
     if n_2WP % 2 == 0:
 
         #Add shapes for projected days
-        if n_P % 2 == 0:
+        if valueprojection == True:
             for i in range(len(figadditivessthprojection[1].data)):
                 figs.add_trace(figadditivessthprojection[1].data[i])
                 #Add hover data for projection
@@ -799,7 +982,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
     if n_3WP % 2 == 0:
 
         #Add shapes for projected days
-        if n_P % 2 == 0:
+        if valueprojection == True:
             for i in range(len(figadditivessthprojection[2].data)):
                 figs.add_trace(figadditivessthprojection[2].data[i])
                 #Add hover data for projection
@@ -838,7 +1021,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
     if n_5WP % 2 == 0:
 
         #Add shapes for projected days
-        if n_P % 2 == 0:
+        if valueprojection == True:
             for i in range(len(figadditivessthprojection[4].data)):
                 figs.add_trace(figadditivessthprojection[4].data[i])
                 #Add hover data for projection
@@ -872,7 +1055,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
     if n_6WP % 2 == 0:
 
         #Add shapes for projected days
-        if n_P % 2 == 0:
+        if valueprojection == True:
             for i in range(len(figadditivessthprojection[5].data)):
                 figs.add_trace(figadditivessthprojection[5].data[i])
                 #Add hover data for projection
@@ -906,21 +1089,6 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
     if n_1WP % 2 != 0 and n_2WP % 2 != 0 and n_3WP % 2 != 0 and n_4WP % 2 != 0 and n_5WP % 2 != 0 and n_6WP % 2 != 0:
 
         raise PreventUpdate
-
-    if n_1WP % 2 != 0 and n_2WP % 2 != 0 and n_3WP % 2 != 0 and n_4WP % 2 == 0 and n_5WP % 2 != 0 and n_6WP % 2 != 0:
-        pass
-    else:
-        for i in range(timegap(min(workingdays), max(workingdays))):
-            if min(workingdays)+timedelta(days=i) not in workingdays:
-                nonworkingdays.append(min(workingdays)+timedelta(days=i))
-
-        nonworkingdaysranges = [nonworkingdays[0]]
-        
-        for i in range(len(nonworkingdays)-1):
-            if nonworkingdays[i]+timedelta(days=1) != nonworkingdays[i+1]:
-                nonworkingdaysranges.append(nonworkingdays[i]+timedelta(days=1))
-                nonworkingdaysranges.append(nonworkingdays[i+1])
-        nonworkingdaysranges.append(nonworkingdays[-1]+timedelta(days=1))
 
     figs.update_layout(showlegend = False)
 
@@ -976,18 +1144,31 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
     else:
         finished = True
 
-    #Add shapes for absent days
-    if n_C % 2 == 0 and n_1WP % 2 != 0 and n_2WP % 2 != 0 and n_3WP % 2 != 0 and n_4WP % 2 == 0 and n_5WP % 2 != 0 and n_6WP % 2 != 0:
+    #Avoid error from exception
+    if n_1WP % 2 != 0 and n_2WP % 2 != 0 and n_3WP % 2 != 0 and n_4WP % 2 == 0 and n_5WP % 2 != 0 and n_6WP % 2 != 0:
         pass
-    elif n_C % 2 == 0:
+    else:
+        for i in range(timegap(min(workingdays), max(workingdays))):
+            if min(workingdays)+timedelta(days=i) not in workingdays not in workingdays and min(workingdays)+timedelta(days=i) not in offdays:
+                nonworkingdays.append(min(workingdays)+timedelta(days=i))
+            #Add last set of nonworking days
         if finished == False and sorted(list(set(workingdays)))[-1]+timedelta(days=1) < lastdate:
-            figs.add_shape(type="rect",
-              x0=sorted(list(set(workingdays)))[-1]+timedelta(days=1), x1=lastdate,
-              y0=0, y1=1,
-              xref='x', yref='paper',
-              line=dict(color="black", width=1.5),
-              fillcolor = 'black',
-              opacity = 0.1)
+            for i in range(timegap(sorted(list(set(workingdays)))[-1]+timedelta(days=1), lastdate)):
+                if sorted(list(set(workingdays)))[-1]+timedelta(days=1)+timedelta(days=i) not in offdays:
+                    nonworkingdays.append(sorted(list(set(workingdays)))[-1]+timedelta(days=1)+timedelta(days=i))
+
+        nonworkingdaysranges = [nonworkingdays[0]]
+        
+        for i in range(len(nonworkingdays)-1):
+            if nonworkingdays[i]+timedelta(days=1) != nonworkingdays[i+1]:
+                nonworkingdaysranges.append(nonworkingdays[i]+timedelta(days=1))
+                nonworkingdaysranges.append(nonworkingdays[i+1])
+        nonworkingdaysranges.append(nonworkingdays[-1]+timedelta(days=1))
+
+    #Add shapes for absent days
+    if valueabsent == True and n_1WP % 2 != 0 and n_2WP % 2 != 0 and n_3WP % 2 != 0 and n_4WP % 2 == 0 and n_5WP % 2 != 0 and n_6WP % 2 != 0:
+        pass
+    elif valueabsent == True:
         for i in range(len(nonworkingdaysranges)//2):
             figs.add_shape(type="rect",
               x0=nonworkingdaysranges[2*i], x1=nonworkingdaysranges[2*i+1],
@@ -995,12 +1176,12 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
               xref='x', yref='paper',
               line=dict(color="black", width=1.5),
               fillcolor = 'black',
-              opacity = 0.1)
+              opacity = 0.15)
   
     figs.update_layout(showlegend = False)
 
     #Add dashed line for last measurement and annotation in the conditional forecast
-    if n_P % 2 == 0 and finished == False:
+    if valueprojection == True and finished == False:
         
         figs.add_shape(type="line",
                                 x0=lastdate, x1=lastdate,
@@ -1031,7 +1212,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
     for i in range(len(actualfigs.data)):
         actualfigs.data[i].y = [j-1 if j!=None else None for j in actualfigs.data[i].y]
     #Add planned data for the case of the toggle button
-    if n_R % 2 == 0:
+    if valueflowlines == True:
         for i in range(len(planfigs.data)):
             figs.add_trace(planfigs.data[i])
         figs.update_layout(title = dict(text = '<b>Flowlines Fit-out - South Building (Plan v Actual)<b>', font = dict(size = 20)))
@@ -1042,7 +1223,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
     if n_1WP % 2 != 0 and n_2WP % 2 != 0 and n_3WP % 2 != 0 and n_4WP % 2 == 0 and n_5WP % 2 != 0 and n_6WP % 2 != 0:
 
         #Prevent plan error in this case
-        if n_R % 2 != 0:
+        if valueflowlines == False:
             raise PreventUpdate
         else:
             maxdate = max([j for j in [i.x for i in planfigs.data][0] if j!=  None])
@@ -1091,7 +1272,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
         figs.update_layout(yaxis = dict(tickmode='array', tickvals = [i for i in range(southfloornamelen+1)], ticktext = ['']*(southfloornamelen+1), range = [-0.43, southfloornamelen+0.43], title_standoff = 50),
                            xaxis = dict(range = [date(2022, 10, 31)-timedelta(days=5), maxdate+timedelta(days=5)]))
 
-    if n_A % 3 == 0:
+    if valueactual == False and valueplan == True:
 
         planfigs.update_layout(showlegend = False)
         #Update size of plot
@@ -1101,6 +1282,10 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
         planfigs.update_layout(title = dict(text = '<b>Flowlines Fit-out - South Building (Plan)<b>', font = dict(size = 25)))
         #Use extra data to ensure that xaxis range is fixed
         maxrange = lastdate
+        #Add weekends and holidays
+        for Days in range(0, len(offdaysranges)-1, 2):
+            if datetimeconversion(offdaysranges[Days])>=datetime.datetime(2022, 10, 31, 0, 0)-timedelta(days=5) and datetimeconversion(offdaysranges[Days+1]) < datetimeconversion(maxrange)+timedelta(days=5):
+                planfigs.add_shape(type = 'rect', x0 = datetimeconversion(offdaysranges[Days]), x1 = datetimeconversion(offdaysranges[Days+1])+timedelta(days=1), y0 = 0, y1 = 1, xref = 'x', yref = 'paper', line=dict(color="rgba(0, 0, 0, 0)", width=1.5), fillcolor = '#6d6b15', opacity = 0.25, layer = 'below')
         toprightfigs = px.line(x = [maxrange+timedelta(days=5), maxrange+timedelta(days=5)], y = [8, 8])
         toprightfigs.update_traces(hoverinfo = 'none', hovertemplate = None)
         bottomleftfigs = px.line(x = [date(2022, 10, 31)-timedelta(days=5), date(2022, 10, 31)-timedelta(days=5)], y = [0, 0])
@@ -1109,7 +1294,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
         planfigs.add_traces(bottomleftfigs.data[0])
         return planfigs
     
-    elif n_A % 3 == 1 and n_R % 2 == 0:
+    elif valueactual == True and valueplan == True and valueflowlines == False:
         for i in range(len(planfigs.data)):
             planactualfigs.add_trace(planfigs.data[i])
         for i in range(len(actualfigs.data)):
@@ -1119,6 +1304,10 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
         planactualfigs.update_layout(height=height, width=width)
         #Use extra data to ensure that xaxis range is fixed
         maxrange = max([datetimeconversion(i) for i in np.concatenate([i.x for i in planactualfigs.data]) if type(i) == datetime.date or type(i) == datetime.datetime])
+        #Add weekends and holidays
+        for Days in range(0, len(offdaysranges)-1, 2):
+            if datetimeconversion(offdaysranges[Days])>=datetime.datetime(2022, 10, 31, 0, 0)-timedelta(days=5) and datetimeconversion(offdaysranges[Days+1]) < datetimeconversion(maxrange)+timedelta(days=5):
+                planactualfigs.add_shape(type = 'rect', x0 = datetimeconversion(offdaysranges[Days]), x1 = datetimeconversion(offdaysranges[Days+1])+timedelta(days=1), y0 = 0, y1 = 1, xref = 'x', yref = 'paper', line=dict(color="rgba(0, 0, 0, 0)", width=1.5), fillcolor = '#6d6b15', opacity = 0.25, layer = 'below')
         planactualfigs.update_layout(yaxis = dict(tickmode='array', tickvals = [i for i in range(southfloornamelen+1)], ticktext = ['']*(southfloornamelen+1), range = [-0.43, southfloornamelen+0.43], title_standoff = 50),
                            xaxis = dict(range = [date(2022, 10, 31)-timedelta(days=5), max([dateconversion(i) for i in np.concatenate([i.x for i in planactualfigs.data]) if type(i) == datetime.date or type(i) == datetime.datetime])+timedelta(days=5)]))
         planactualfigs.update_layout(title = dict(text = '<b>Flowlines Fit-out - South Building (Plan v Actual)<b>', font = dict(size = 25)))
@@ -1130,14 +1319,36 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
         planactualfigs.add_traces(bottomleftfigs.data[0])
         return planactualfigs
     
-    elif n_A % 3 == 1 and n_R % 2 == 1:
+    elif valueactual == True and valueplan == True and valueflowlines == True:
 
         for i in range(len(planfigs.data)):
             figs.add_trace(planfigs.data[i])
         #Use extra data to ensure that xaxis range is fixed
         maxrange = max([datetimeconversion(i) for i in np.concatenate([i.x for i in figs.data]) if type(i) == datetime.date or type(i) == datetime.datetime])
-        if finished == False and n_P % 2 == 1:
+        if finished == False and valueprojection == False:
             maxrange = lastdate
+        #In the case the furthest point is a shaded rectangle
+        if [dateconversion(i.x1) for i in figs.layout.shapes if i.type == 'rect' and i.fillcolor == 'black'] != []:
+            if max([dateconversion(i.x1) for i in figs.layout.shapes if i.type == 'rect' and i.fillcolor == 'black']) > dateconversion(maxrange):
+                maxrange = max([dateconversion(i.x1) for i in figs.layout.shapes if i.type == 'rect' and i.fillcolor == 'black']) 
+        #Add weekends and holidays
+        for Days in range(0, len(offdaysranges)-1, 2):
+            if datetimeconversion(offdaysranges[Days])>=datetime.datetime(2022, 10, 31, 0, 0)-timedelta(days=5) and datetimeconversion(offdaysranges[Days+1]) < datetimeconversion(maxrange)+timedelta(days=5):
+                figs.add_shape(type = 'rect', x0 = datetimeconversion(offdaysranges[Days]), x1 = datetimeconversion(offdaysranges[Days+1])+timedelta(days=1), y0 = 0, y1 = 1, xref = 'x', yref = 'paper', line=dict(color="rgba(0, 0, 0, 0)", width=1.5), fillcolor = '#6d6b15', opacity = 0.25, layer = 'below')
+        #Add text regarding percentage of days without progress
+        if valueabsent == True and len(workingdays) != 0:
+            if finished:
+                Maxdate = maxrange
+            else:
+                Maxdate = lastdate
+            
+            #Calculate ratio by summing the ranges of the shaded rectangles
+            nonholidayweekdays = 0
+            for i in range((MAXDATE(np.concatenate([i.x for i in figs.data if i.line.dash == 'solid' and i.line.color != 'black']))-mindate(np.concatenate([i.x for i in figs.data if i.line.dash == 'solid' and i.line.color != 'black']))).days):
+                if mindate(np.concatenate([i.x for i in figs.data]))+timedelta(days=i) not in offdays:
+                    nonholidayweekdays += 1 
+            nonworkingratio = sum([(i.x1-i.x0).days for i in figs.layout.shapes if i.type == 'rect' and i.fillcolor == 'black'])/nonholidayweekdays
+            figs.add_annotation(x = 0, y = 8.125, text = 'Percentage of days with no progress: '+str(round(100*nonworkingratio))+'%', xref = 'paper', yref = 'y', showarrow = False, font = dict(size = 15))
         figs.update_layout(title = dict(text = '<b>Flowlines Fit-out - South Building (Plan v Actual)<b>', font = dict(size = 25)), xaxis = dict(range = [date(2022, 10, 31)-timedelta(days=5), maxrange+timedelta(days=5)]))
         toprightfigs = px.line(x = [maxrange+timedelta(days=5), maxrange+timedelta(days=5)], y = [8, 8])
         toprightfigs.update_traces(hoverinfo = 'none', hovertemplate = None)
@@ -1147,7 +1358,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
         figs.add_traces(bottomleftfigs.data[0])
         return figs
     
-    elif n_A % 3 == 2 and n_R % 2 == 0:
+    elif valueactual == True and valueplan == False and valueflowlines == False:
 
         actualfigs.update_layout(showlegend = False)
         #Update size of plot
@@ -1156,6 +1367,10 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
         maxrange = max([datetimeconversion(i) for i in np.concatenate([i.x for i in actualfigs.data]) if type(i) == datetime.date or type(i) == datetime.datetime])
         actualfigs.update_layout(yaxis = dict(tickmode='array', tickvals = [i for i in range(southfloornamelen+1)], ticktext = ['']*(southfloornamelen+1), range = [-0.43, southfloornamelen+0.43], title_standoff = 50),
                            xaxis = dict(range = [date(2022, 10, 31)-timedelta(days=5), maxrange+timedelta(days=5)]))
+        #Add weekends and holidays
+        for Days in range(0, len(offdaysranges)-1, 2):
+            if datetimeconversion(offdaysranges[Days])>=datetime.datetime(2022, 10, 31, 0, 0)-timedelta(days=5) and datetimeconversion(offdaysranges[Days+1]) < maxrange+timedelta(days=5):
+                actualfigs.add_shape(type = 'rect', x0 = datetimeconversion(offdaysranges[Days]), x1 = datetimeconversion(offdaysranges[Days+1])+timedelta(days=1), y0 = 0, y1 = 1, xref = 'x', yref = 'paper', line=dict(color="rgba(0, 0, 0, 0)", width=1.5), fillcolor = '#6d6b15', opacity = 0.25, layer = 'below')
         actualfigs.update_layout(title = dict(text = '<b>Flowlines Fit-out - South Building (Actual)<b>', font = dict(size = 25)))
         toprightfigs = px.line(x = [maxrange+timedelta(days=5), maxrange+timedelta(days=5)], y = [8, 8])
         toprightfigs.update_traces(hoverinfo = 'none', hovertemplate = None)
@@ -1165,11 +1380,33 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
         actualfigs.add_traces(bottomleftfigs.data[0])
         return actualfigs
 
-    else:
+    elif valueactual == True and valueplan == False and valueflowlines == True:
         #Use extra data to ensure that xaxis range is fixed
         maxrange = max([datetimeconversion(i) for i in np.concatenate([i.x for i in figs.data]) if type(i) == datetime.date or type(i) == datetime.datetime])
-        if finished == False and n_P % 2 == 1:
+        if finished == False and valueprojection == False:
             maxrange = lastdate
+        #In the case the furthest point is a shaded rectangle
+        if [dateconversion(i.x1) for i in figs.layout.shapes if i.type == 'rect' and i.fillcolor == 'black'] != []:
+            if max([dateconversion(i.x1) for i in figs.layout.shapes if i.type == 'rect' and i.fillcolor == 'black']) > dateconversion(maxrange):
+                maxrange = max([dateconversion(i.x1) for i in figs.layout.shapes if i.type == 'rect' and i.fillcolor == 'black']) 
+        #Add weekends and holidays
+        for Days in range(0, len(offdaysranges)-1, 2):
+            if datetimeconversion(offdaysranges[Days])>=datetime.datetime(2022, 10, 31, 0, 0)-timedelta(days=5) and datetimeconversion(offdaysranges[Days+1]) < datetimeconversion(maxrange)+timedelta(days=5):
+                figs.add_shape(type = 'rect', x0 = datetimeconversion(offdaysranges[Days]), x1 = datetimeconversion(offdaysranges[Days+1])+timedelta(days=1), y0 = 0, y1 = 1, xref = 'x', yref = 'paper', line=dict(color="rgba(0, 0, 0, 0)", width=1.5), fillcolor = '#6d6b15', opacity = 0.25, layer = 'below')
+        #Add text regarding percentage of days without progress
+        if valueabsent == True and len(workingdays) != 0:
+            if finished:
+                Maxdate = maxrange
+            else:
+                Maxdate = lastdate
+            
+            #Calculate ratio by summing the ranges of the shaded rectangles
+            nonholidayweekdays = 0
+            for i in range((MAXDATE(np.concatenate([i.x for i in figs.data if i.line.dash == 'solid' and i.line.color != 'black']))-mindate(np.concatenate([i.x for i in figs.data if i.line.dash == 'solid' and i.line.color != 'black']))).days):
+                if mindate(np.concatenate([i.x for i in figs.data]))+timedelta(days=i) not in offdays:
+                    nonholidayweekdays += 1 
+            nonworkingratio = sum([(i.x1-i.x0).days for i in figs.layout.shapes if i.type == 'rect' and i.fillcolor == 'black'])/nonholidayweekdays
+            figs.add_annotation(x = 0, y = 8.125, text = 'Percentage of days with no progress: '+str(round(100*nonworkingratio))+'%', xref = 'paper', yref = 'y', showarrow = False, font = dict(size = 15))
         figs.update_layout(title = dict(text = '<b>Flowlines Fit-out - South Building (Actual)<b>', font = dict(size = 25)), xaxis = dict(range = [date(2022, 10, 31)-timedelta(days=5), maxrange+timedelta(days=5)]))
         toprightfigs = px.line(x = [maxrange+timedelta(days=5), maxrange+timedelta(days=5)], y = [8, 8])
         toprightfigs.update_traces(hoverinfo = 'none', hovertemplate = None)
@@ -1178,48 +1415,32 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
         figs.add_traces(toprightfigs.data[0])
         figs.add_traces(bottomleftfigs.data[0])
         return figs
-
     
-    
+    else:
+        raise PreventUpdate    
 
 @app2.callback(
     output,
     input
 )
-def update_button_style(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
+def update_button_style(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual, valueflowlines, valueabsent, valueprojection):
     # Default style for buttons
-    default_style = {'width': '100%', 'backgroundColor': 'white', 'color': 'black', 'margin-bottom':'5px', 'margin-bottom':'5px', 'height': '30px', 'border-radius': '10px', 'text-align': 'left',
-                     'border-width': '0'}
+    default_style = {'width': '100%', 'backgroundColor': 'white', 'color': 'black', 'margin-bottom':'5px', 'margin-bottom':'5px', 'height': '30px', 'border-radius': '10px', 'text-align': 'left', 'border-width': '0'}
     active_style = default_style.copy()
     default_style['color'] = 'black'
     active_style['color'] = '#aaa'
-    default_style0 = {'backgroundColor': 'green', 'color': 'white', 'height': '30px', 'border-radius': '15px', 'position': 'relative', 'left': '20px', 'width': '210px', 'border-width': '0'}
-    active_styleA = default_style0.copy()
-    active_styleB = default_style0.copy()
-    default_style0['background-color'] = 'green'
-    active_styleA['background-color'] = 'red'
-    active_styleB['background-color'] = 'blue'
-    default_style1 = {'backgroundColor': 'green', 'color': 'white', 'height': '30px', 'border-radius': '15px', 'position': 'relative', 'left': '148px', 'width': '210px', 'border-width': '0'}
-    active_style1 = default_style1.copy()
-    default_style1['background-color'] = 'green'
-    active_style1['background-color'] = 'red'
-    if n_A % 3 == 0:
+    default_style0 = {'font-family':'Arial, sans-serif', 'backgroundColor': 'green', 'color': 'white', 'height': '38px', 'border-radius': '19px', 'margin-top': '0px', 'width': '100px', 'border-width': '0', 'position': 'relative', 'left': '30px', 'bottom': '5px', 'text-align': 'left', 'padding-left': '15px'}
+    active_style0 = {'font-family':'Arial, sans-serif', 'backgroundColor': '#e6e6e6', 'color': 'white', 'height': '38px', 'border-radius': '19px', 'margin-top': '0px', 'width': '100px', 'border-width': '0', 'position': 'relative', 'left': '30px', 'bottom': '5px', 'text-align': 'right', 'padding-right': '15px'}
+    default_style1 = {'font-family':'Arial, sans-serif', 'backgroundColor': 'green', 'color': 'white', 'height': '38px', 'border-radius': '19px', 'margin-top': '10px', 'width': '100px', 'border-width': '0', 'position': 'relative', 'left': '30px', 'bottom': '5px', 'text-align': 'left', 'padding-left': '15px'}
+    active_style1 = {'font-family':'Arial, sans-serif', 'backgroundColor': '#e6e6e6', 'color': 'white', 'height': '38px', 'border-radius': '19px', 'margin-top': '10px', 'width': '100px', 'border-width': '0', 'position': 'relative', 'left': '30px', 'bottom': '5px', 'text-align': 'right', 'padding-right': '15px'}
+    if valueactual == False:
         default_style1['display'] = 'None'
         active_style1['display'] = 'None'
-    default_style2 = {'backgroundColor': 'green', 'color': 'white', 'height': '30px', 'border-radius': '15px', 'position': 'relative', 'left': '276px', 'width': '210px', 'border-width': '0'}
-    active_style2 = default_style2.copy()
-    default_style2['background-color'] = 'green'
-    active_style2['background-color'] = 'red'
-    if n_A % 3 == 0 or n_R % 2 == 0:
+    default_style2 = {'font-family':'Arial, sans-serif', 'backgroundColor': 'green', 'color': 'white', 'height': '38px', 'border-radius': '19px', 'margin-top': '10px', 'width': '100px', 'border-width': '0', 'position': 'relative', 'left': '30px', 'bottom': '5px', 'text-align': 'left', 'padding-left': '15px'}
+    active_style2 = {'font-family':'Arial, sans-serif', 'backgroundColor': '#e6e6e6', 'color': 'white', 'height': '38px', 'border-radius': '19px', 'margin-top': '10px', 'width': '100px', 'border-width': '0', 'position': 'relative', 'left': '30px', 'bottom': '5px', 'text-align': 'right', 'padding-right': '15px'}
+    if valueactual == False or valueflowlines == False:
         default_style2['display'] = 'None'
         active_style2['display'] = 'None'
-    default_style3 = {'backgroundColor': 'green', 'color': 'white', 'height': '30px', 'border-radius': '15px', 'position': 'relative', 'left': '404px', 'width': '210px', 'border-width': '0'}
-    active_style3 = default_style3.copy()
-    default_style3['background-color'] = 'green'
-    active_style3['background-color'] = 'red'
-    if n_A % 3 == 0 or n_R % 2 == 0:
-        default_style3['display'] = 'None'
-        active_style3['display'] = 'None'
 
     return (
         default_style if n_1WP % 2 == 0 else active_style,
@@ -1228,17 +1449,94 @@ def update_button_style(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C,
         default_style if n_4WP % 2 == 0 else active_style,
         default_style if n_5WP % 2 == 0 else active_style,
         default_style if n_6WP % 2 == 0 else active_style,
-        default_style0 if n_A % 3 == 0 else active_styleA if n_A % 3 == 1 else active_styleB,
-        default_style1 if n_R % 2 == 0 else active_style1,
-        default_style2 if n_C % 2 == 0 else active_style2,
-        default_style3 if n_P % 2 == 0 else active_style3,
+        default_style0 if valueplan == True else active_style0,
+        default_style0 if valueactual == True else active_style0,
+        default_style1 if valueflowlines == True else active_style1,
+        default_style2 if valueabsent == True else active_style2,
+        default_style2 if valueprojection == True else active_style2
+    )
+
+@app2.callback(
+    [Output('toggle-planns', 'style'),
+     Output('toggle-actualns', 'style'),
+     Output('toggle-flowlines', 'style'),
+     Output('toggle-absentdaysns', 'style'),
+     Output('toggle-projectiondaysns', 'style')],
+    [Input('toggle-planns', 'on'),
+     Input('toggle-actualns', 'on'),
+     Input('toggle-flowlines', 'on'),
+     Input('toggle-absentdaysns', 'on'),
+     Input('toggle-projectiondaysns', 'on')]
+)
+
+def update_button_style(valueplan, valueactual, valueflowlines, valueabsent, valueprojection):
+    # Default style for buttons
+    default_style = {'transform': 'scale(1.4)', 'position': 'relative', 'right': '32px'}
+    active_style = {'transform': 'scale(1.4)', 'position': 'relative', 'right': '80px'}
+    default_style1 = {'transform': 'scale(1.4)', 'position': 'relative', 'right': '32px'}
+    active_style1 = {'transform': 'scale(1.4)', 'position': 'relative', 'right': '80px'}
+    default_style2 = {'transform': 'scale(1.4)', 'position': 'relative', 'right': '32px'}
+    active_style2 = {'transform': 'scale(1.4)', 'position': 'relative', 'right': '80px'}
+    if valueactual == False:
+        default_style1 = {'opacity': '0'}
+        active_style1 = {'opacity': '0'}
+        default_style2 = {'opacity': '0'}
+        active_style2 = {'opacity': '0'}
+    if valueflowlines == False:
+        default_style2 = {'opacity': '0'}
+        active_style2 = {'opacity': '0'}
+
+    return (
+        default_style if valueplan == True else active_style,
+        default_style if valueactual == True else active_style,
+        default_style1 if valueflowlines == True else active_style1,
+        default_style2 if valueabsent == True else active_style2,
+        default_style2 if valueprojection == True else active_style2
+    )
+
+@app2.callback(
+    [Output('title1', 'style'),
+     Output('title2', 'style'),
+     Output('title3', 'style'),
+     Output('title4', 'style'),
+     Output('title5', 'style')],
+    [Input('toggle-planns', 'on'),
+     Input('toggle-actualns', 'on'),
+     Input('toggle-flowlines', 'on'),
+     Input('toggle-absentdaysns', 'on'),
+     Input('toggle-projectiondaysns', 'on')]
+)
+
+def update_button_style(valueplan, valueactual, valueflowlines, valueabsent, valueprojection):
+    # Default style for buttons
+    default_style = {'font-family':'Arial, sans-serif', 'position': 'relative', 'right': '12px', 'bottom': '5px'}
+    active_style = {'font-family':'Arial, sans-serif', 'position': 'relative', 'right': '12px', 'bottom': '5px'}
+    default_style1 = {'font-family':'Arial, sans-serif', 'position': 'relative', 'right': '12px', 'bottom': '5px'}
+    active_style1 = {'font-family':'Arial, sans-serif', 'position': 'relative', 'right': '12px', 'bottom': '5px'}
+    default_style2 = {'font-family':'Arial, sans-serif', 'position': 'relative', 'right': '12px', 'bottom': '5px'}
+    active_style2 = {'font-family':'Arial, sans-serif', 'position': 'relative', 'right': '12px', 'bottom': '5px'}
+    if valueactual == False:
+        default_style1 = {'opacity': '0'}
+        active_style1 = {'opacity': '0'}
+        default_style2 = {'opacity': '0'}
+        active_style2 = {'opacity': '0'}
+    if valueflowlines == False:
+        default_style2 = {'opacity': '0'}
+        active_style2 = {'opacity': '0'}
+
+    return (
+        default_style if valueplan == True else active_style,
+        default_style if valueactual == True else active_style,
+        default_style1 if valueflowlines == True else active_style1,
+        default_style2 if valueabsent == True else active_style2,
+        default_style2 if valueprojection == True else active_style2
     )
 
 @app2.callback(
     outputchildren,
     input
 )
-def update_button_style(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C, n_P):
+def update_button_style(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual, valueflowlines, valueabsent, valueprojection):
     on = []
     off = []
     # Change button style
@@ -1255,14 +1553,91 @@ def update_button_style(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, n_A, n_R, n_C,
         on[3] if n_4WP % 2 == 0 else off[3],
         on[4] if n_5WP % 2 == 0 else off[4],
         on[5] if n_6WP % 2 == 0 else off[5],
-        'Show Plan and Actual' if n_A % 3 == 0 else 'Show Actual' if n_A % 3 == 1 else 'Show Plan',
-        'Thin Flowlines' if n_R % 2 == 0 else 'Line of balance',
-        'Hide days with no progress' if n_C % 2 == 0 else 'Show days with no progress',
-        'Hide forecast' if n_P % 2 == 0 else 'Show forecast'
+        'On' if valueplan == True else 'Off',
+        'On' if valueactual == True else 'Off',
+        'On' if valueflowlines == True else 'Off',
+        'On' if valueabsent == True else 'Off',
+        'On' if valueprojection == True else 'Off'
     )
-
+#app2.write_html('testapp2')
 if __name__ == '__main__':
-    # Get the port from the environment variable
-    port = int(os.environ.get("PORT", 8052))
-    app2.run_server(host ='0.0.0.0', port=port)
+    app2.run_server(debug=True, port=8052)
+
+
+# In[29]:
+
+
+figadditives[0].data[0].line
+
+
+# In[30]:
+
+
+Flowlines1fig.layout.title.text ='<b>Plan v Actual activity lines North<b>'
+app4 = dash.Dash(__name__)
+
+app4.layout = html.Div([
+    html.Div([dcc.Graph(id='plot-output', figure = Flowlines1fig, style = {'width': '100%', 'height': '860px'})], style={'width': '1600px', 'position': 'absolute'})
+])
+
+#if __name__ == '__main__':
+ #   app3.run(debug=True, port=8051)
+
+
+# In[31]:
+
+
+print(figadditivessth[4].layout.coloraxis)
+
+
+# In[32]:
+
+
+Flowlines1figsth.layout.title.text ='<b>Plan v Actual activity lines South<b>'
+app5 = dash.Dash(__name__)
+
+app5.layout = html.Div([dcc.Graph(id='plot-output', figure = Flowlines1figsth, style = {'width': '100%', 'height': '860px'})], style={'width': '1600px', 'position': 'absolute'})
+
+
+#if __name__ == '__main__':
+ #   app4.run(debug=True, port=8051)
+
+
+# In[33]:
+
+
+app6 = dash.Dash(__name__)
+
+locationlist = ['North', 'South']
+graphlist = ['Progress flow', 'Activity lines']
+
+app6.layout = html.Div([
+    html.Div(id='dd-output-container', style={'position': 'absolute', 'width': '1600px', 'height':'860'}),
+    html.Div([html.Div([dcc.Dropdown(locationlist, 'North', id='location-dropdown', style={'width':'100px', 'backgroundColor': '#f6f6f6'})], style = {'position': 'relative', 'left': '50px'}),
+              html.Div([dcc.Dropdown(graphlist, 'Progress flow', id='graph-dropdown', style={'width':'150px', 'backgroundColor': '#f6f6f6'})], style = {'position': 'relative', 'left': '1160px'})], 
+             style={'display': 'flex', 'display-direction': 'row', 'position': 'relative', 'top': '20px'})
+])
+
+@app6.callback(
+    Output('dd-output-container', 'children'),
+    [Input('location-dropdown', 'value'),
+     Input('graph-dropdown', 'value')]
+)
+
+def update_plot_output(locationvalue, graphvalue):
+
+    if locationvalue == 'North' and graphvalue == 'Progress flow':
+        return app1.layout
+    elif locationvalue == 'South' and graphvalue == 'Progress flow':
+        return app2.layout
+    elif locationvalue == 'North' and graphvalue == 'Activity lines':
+        return app3.layout
+    elif locationvalue == 'South' and graphvalue == 'Activity lines':
+        return app4.layout
+    else:
+        raise PreventUpdate
+
+
+#if __name__ == '__main__':
+ #   app5.run(debug=True, port=8051)
 
