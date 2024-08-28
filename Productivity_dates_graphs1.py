@@ -1,9 +1,41 @@
 #!/usr/bin/env python
 # coding: utf-8
-# In[25]:
+
+# In[14]:
+
+
+import nbformat
+from nbconvert import PythonExporter
+
+# Load the notebook
+with open('/Users/juanfranciscolorussonotarofrancesco/Desktop/Progress Data Exports/Productivity_dates_graphs1.ipynb', encoding='utf-8') as f:
+    notebook = nbformat.read(f, as_version=4)
+
+# Create a PythonExporter
+exporter = PythonExporter()
+
+# Export the notebook to Python script
+script, _ = exporter.from_notebook_node(notebook)
+
+# Write the script to a file
+with open('/Users/juanfranciscolorussonotarofrancesco/Desktop/Progress Data Exports/Productivity_dates_graphs1.py', 'w', encoding='utf-8') as f:
+    f.write(script)
+
+
+# In[2]:
+
+
+#import Productivity_dates
+#from Productivity_dates import figadditives, custom_colorscale, cladding_dates, flowlineactivitiesfig_layouts_datapoints, flowlineactivitiesfig_layouts, figadditivesprojection, name_legend, Flowlines1fig, southfloornamelen, timegap
+#from Productivity_dates import figadditivessth, figadditivessthprojection, Flowlines1figsth
 import numpy as np
 import math
 import pandas as pd
+
+
+# In[3]:
+
+
 import json
 import plotly.graph_objs as go
 import plotly.express as px
@@ -51,7 +83,8 @@ figadditivessth = json_to_figures_list('figadditivessth.json')
 figadditivessthprojection = json_to_figures_list('figadditivessthprojection.json')
 figadditivesprojection = json_to_figures_list('figadditivesprojection.json')
 
-# In[26]:
+
+# In[4]:
 
 
 import datetime
@@ -77,16 +110,44 @@ for i in range(len(offdays)-1):
         offdaysranges.append(offdays[i+1])
 
 
-# In[27]:
+# In[5]:
+
+
+format1 = "%Y-%m-%dT%H:%M:%S.%f"
+format2 = "%Y-%m-%dT%H:%M:%S"
+
+def timegap(Day1, Day2):
+    i = 0
+    if type(Day1) == str:
+        try:
+            Day1 = datetime.datetime.strptime(Day1, format1).date()
+        except:
+            Day1 = datetime.datetime.strptime(Day1, format2).date()
+    if type(Day2) == str:
+        try:
+            Day2 = datetime.datetime.strptime(Day2, format1).date()
+        except:
+            Day2 = datetime.datetime.strptime(Day2, format2).date()
+
+    Time_days = Day2 - Day1
+
+    while Time_days != timedelta(days=0):
+
+        Time_days = (Time_days-timedelta(days=1))
+        i+=1
+
+    return i
+
+
+# In[15]:
 
 
 import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output, State
-import plotly.graph_objs as go
-import plotly.express as px
 from dash.exceptions import PreventUpdate
 import dash_daq as daq
+import os
 
 lastdate = date(2023, 9, 29)
 def dateconversion(x):
@@ -98,14 +159,21 @@ def dateconversion(x):
 def datetimeconversion(x):
     if type(x) == date:
         return datetime.datetime.combine(x, time(0, 0, 0))
+    elif type(x) == str:
+        try:
+            x = datetime.datetime.strptime(x, format1)
+            return x
+        except:
+            x = datetime.datetime.strptime(x, format2)
+            return x
     else:
         return x
     
 def MAXDATE(arr):
-    return max(datetimeconversion(i) for i in arr if type(i)==datetime.datetime or type(i)==date)
+    return max(datetimeconversion(i) for i in arr if type(i)==datetime.datetime or type(i)==date or type(i)==str)
 
 def mindate(arr):
-    return min(datetimeconversion(i) for i in arr if type(i)==datetime.datetime or type(i)==date)
+    return min(datetimeconversion(i) for i in arr if type(i)==datetime.datetime or type(i)==date or type(i)==str)
 
 app1 = dash.Dash(__name__)
 server1 = app1.server
@@ -218,9 +286,15 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual
             for i in range(len(figadditivesprojection[0].data)):
                 figs.add_trace(figadditivesprojection[0].data[i])
                 #Add hover data for projection
-                dataprojection = pd.DataFrame({'x': [figadditivesprojection[0].data[i].x[1], figadditivesprojection[0].data[i].x[1]], 
+                try:
+                    dataprojection = pd.DataFrame({'x': [figadditivesprojection[0].data[i].x[1], figadditivesprojection[0].data[i].x[1]], 
                                                'y': [figadditivesprojection[0].data[i].y[1], figadditivesprojection[0].data[i].y[1]], 
-                                               'customdata0': [figadditivesprojection[0].data[i].x[1].date(), figadditivesprojection[0].data[i].x[1].date()],
+                                               'customdata0': [datetime.datetime.strptime(figadditivesprojection[0].data[i].x[1], format1).date(), datetime.datetime.strptime(figadditivesprojection[0].data[i].x[1], format1).date()],
+                                               'customdata1': ['L'+str(int(round(figadditivesprojection[0].data[i].y[1]))), 'L'+str(int(round(figadditivesprojection[0].data[i].y[1])))]})
+                except:
+                    dataprojection = pd.DataFrame({'x': [figadditivesprojection[0].data[i].x[1], figadditivesprojection[0].data[i].x[1]], 
+                                               'y': [figadditivesprojection[0].data[i].y[1], figadditivesprojection[0].data[i].y[1]], 
+                                               'customdata0': [datetime.datetime.strptime(figadditivesprojection[0].data[i].x[1], format2).date(), datetime.datetime.strptime(figadditivesprojection[0].data[i].x[1], format2).date()],
                                                'customdata1': ['L'+str(int(round(figadditivesprojection[0].data[i].y[1]))), 'L'+str(int(round(figadditivesprojection[0].data[i].y[1])))]})
                 Fadd = px.line(dataprojection, x = 'x', y = 'y', color_discrete_sequence = 2*['black'], hover_data = ['customdata0', 'customdata1'])
                 Fadd.update_traces(hovertemplate = 'Projected finish: %{customdata[0]}<br>Level: %{customdata[1]}')
@@ -239,8 +313,8 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual
                     pass
             else:
                 for j in range(len(figadditives[0].data[i].x)//3):
-                    for k in range(timegap(figadditives[0].data[i].x[3*j].date(), figadditives[0].data[i].x[3*j+1].date())+1):
-                        workingdays.append(figadditives[0].data[i].x[3*j].date()+timedelta(days = k))
+                    for k in range(timegap(figadditives[0].data[i].x[3*j], figadditives[0].data[i].x[3*j+1])+1):
+                        workingdays.append(datetime.datetime.strptime(figadditives[0].data[i].x[3*j], format2).date()+timedelta(days = k))
 
         for i in figadditives[0].layout.shapes:
             figs.add_shape(i)
@@ -252,9 +326,15 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual
             for i in range(len(figadditivesprojection[1].data)):
                 figs.add_trace(figadditivesprojection[1].data[i])
                 #Add hover data for projection
-                dataprojection = pd.DataFrame({'x': [figadditivesprojection[1].data[i].x[1], figadditivesprojection[1].data[i].x[1]], 
+                try:
+                    dataprojection = pd.DataFrame({'x': [figadditivesprojection[1].data[i].x[1], figadditivesprojection[1].data[i].x[1]], 
                                                'y': [figadditivesprojection[1].data[i].y[1], figadditivesprojection[1].data[i].y[1]], 
-                                               'customdata0': [figadditivesprojection[1].data[i].x[1].date(), figadditivesprojection[1].data[i].x[1].date()],
+                                               'customdata0': [datetime.datetime.strptime(figadditivesprojection[1].data[i].x[1], format1).date(), datetime.datetime.strptime(figadditivesprojection[1].data[i].x[1], format1).date()],
+                                               'customdata1': ['L'+str(int(round(figadditivesprojection[1].data[i].y[1]))), 'L'+str(int(round(figadditivesprojection[1].data[i].y[1])))]})
+                except:
+                    dataprojection = pd.DataFrame({'x': [figadditivesprojection[1].data[i].x[1], figadditivesprojection[1].data[i].x[1]], 
+                                               'y': [figadditivesprojection[1].data[i].y[1], figadditivesprojection[1].data[i].y[1]], 
+                                               'customdata0': [datetime.datetime.strptime(figadditivesprojection[1].data[i].x[1], format2).date(), datetime.datetime.strptime(figadditivesprojection[1].data[i].x[1], format2).date()],
                                                'customdata1': ['L'+str(int(round(figadditivesprojection[1].data[i].y[1]))), 'L'+str(int(round(figadditivesprojection[1].data[i].y[1])))]})
                 Fadd = px.line(dataprojection, x = 'x', y = 'y', color_discrete_sequence = 2*['black'], hover_data = ['customdata0', 'customdata1'])
                 Fadd.update_traces(hovertemplate = 'Projected finish: %{customdata[0]}<br>Level: %{customdata[1]}')
@@ -273,8 +353,8 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual
                     pass
             else:
                 for j in range(len(figadditives[1].data[i].x)//3):
-                    for k in range(timegap(figadditives[1].data[i].x[3*j].date(), figadditives[1].data[i].x[3*j+1].date())+1):
-                        workingdays.append(figadditives[1].data[i].x[3*j].date()+timedelta(days = k))
+                    for k in range(timegap(figadditives[1].data[i].x[3*j], figadditives[1].data[i].x[3*j+1])+1):
+                        workingdays.append(datetime.datetime.strptime(figadditives[1].data[i].x[3*j], format2).date()+timedelta(days = k))
         
         for i in figadditives[1].layout.shapes:
             figs.add_shape(i)
@@ -286,9 +366,15 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual
             for i in range(len(figadditivesprojection[2].data)):
                 figs.add_trace(figadditivesprojection[2].data[i])
                 #Add hover data for projection
-                dataprojection = pd.DataFrame({'x': [figadditivesprojection[2].data[i].x[1], figadditivesprojection[2].data[i].x[1]], 
+                try:
+                    dataprojection = pd.DataFrame({'x': [figadditivesprojection[2].data[i].x[1], figadditivesprojection[2].data[i].x[1]], 
                                                'y': [figadditivesprojection[2].data[i].y[1], figadditivesprojection[2].data[i].y[1]], 
-                                               'customdata0': [figadditivesprojection[2].data[i].x[1].date(), figadditivesprojection[2].data[i].x[1].date()],
+                                               'customdata0': [datetime.datetime.strptime(figadditivesprojection[2].data[i].x[1], format1).date(), datetime.datetime.strptime(figadditivesprojection[2].data[i].x[1], format1).date()],
+                                               'customdata1': ['L'+str(int(round(figadditivesprojection[2].data[i].y[1]))), 'L'+str(int(round(figadditivesprojection[2].data[i].y[1])))]})
+                except:
+                    dataprojection = pd.DataFrame({'x': [figadditivesprojection[2].data[i].x[1], figadditivesprojection[2].data[i].x[1]], 
+                                               'y': [figadditivesprojection[2].data[i].y[1], figadditivesprojection[2].data[i].y[1]], 
+                                               'customdata0': [datetime.datetime.strptime(figadditivesprojection[2].data[i].x[1], format2).date(), datetime.datetime.strptime(figadditivesprojection[2].data[i].x[1], format2).date()],
                                                'customdata1': ['L'+str(int(round(figadditivesprojection[2].data[i].y[1]))), 'L'+str(int(round(figadditivesprojection[2].data[i].y[1])))]})
                 Fadd = px.line(dataprojection, x = 'x', y = 'y', color_discrete_sequence = 2*['black'], hover_data = ['customdata0', 'customdata1'])
                 Fadd.update_traces(hovertemplate = 'Projected finish: %{customdata[0]}<br>Level: %{customdata[1]}')
@@ -307,8 +393,8 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual
                     pass
             else:
                 for j in range(len(figadditives[2].data[i].x)//3):
-                    for k in range(timegap(figadditives[2].data[i].x[3*j].date(), figadditives[2].data[i].x[3*j+1].date())+1):
-                        workingdays.append(figadditives[2].data[i].x[3*j].date()+timedelta(days = k))
+                    for k in range(timegap(figadditives[2].data[i].x[3*j], figadditives[2].data[i].x[3*j+1])+1):
+                        workingdays.append(datetime.datetime.strptime(figadditives[2].data[i].x[3*j], format2).date()+timedelta(days = k))
 
         for i in figadditives[2].layout.shapes:
             figs.add_shape(i)
@@ -320,9 +406,15 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual
             for i in range(len(figadditivesprojection[3].data)):
                 figs.add_trace(figadditivesprojection[3].data[i])
                 #Add hover data for projection
-                dataprojection = pd.DataFrame({'x': [figadditivesprojection[3].data[i].x[1], figadditivesprojection[3].data[i].x[1]], 
+                try:
+                    dataprojection = pd.DataFrame({'x': [figadditivesprojection[3].data[i].x[1], figadditivesprojection[3].data[i].x[1]], 
                                                'y': [figadditivesprojection[3].data[i].y[1], figadditivesprojection[3].data[i].y[1]], 
-                                               'customdata0': [figadditivesprojection[3].data[i].x[1].date(), figadditivesprojection[3].data[i].x[1].date()],
+                                               'customdata0': [datetime.datetime.strptime(figadditivesprojection[3].data[i].x[1], format1).date(), datetime.datetime.strptime(figadditivesprojection[3].data[i].x[1], format1).date()],
+                                               'customdata1': ['L'+str(int(round(figadditivesprojection[3].data[i].y[1]))), 'L'+str(int(round(figadditivesprojection[3].data[i].y[1])))]})
+                except:
+                    dataprojection = pd.DataFrame({'x': [figadditivesprojection[3].data[i].x[1], figadditivesprojection[3].data[i].x[1]], 
+                                               'y': [figadditivesprojection[3].data[i].y[1], figadditivesprojection[3].data[i].y[1]], 
+                                               'customdata0': [datetime.datetime.strptime(figadditivesprojection[3].data[i].x[1], format2).date(), datetime.datetime.strptime(figadditivesprojection[3].data[i].x[1], format2).date()],
                                                'customdata1': ['L'+str(int(round(figadditivesprojection[3].data[i].y[1]))), 'L'+str(int(round(figadditivesprojection[3].data[i].y[1])))]})
                 Fadd = px.line(dataprojection, x = 'x', y = 'y', color_discrete_sequence = 2*['black'], hover_data = ['customdata0', 'customdata1'])
                 Fadd.update_traces(hovertemplate = 'Projected finish: %{customdata[0]}<br>Level: %{customdata[1]}')
@@ -341,8 +433,8 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual
                     pass
             else:
                 for j in range(len(figadditives[3].data[i].x)//3):
-                    for k in range(timegap(figadditives[3].data[i].x[3*j].date(), figadditives[3].data[i].x[3*j+1].date())+1):
-                        workingdays.append(figadditives[3].data[i].x[3*j].date()+timedelta(days = k))
+                    for k in range(timegap(figadditives[3].data[i].x[3*j], figadditives[3].data[i].x[3*j+1])+1):
+                        workingdays.append(datetime.datetime.strptime(figadditives[3].data[i].x[3*j], format2).date()+timedelta(days = k))
         
         for i in figadditives[3].layout.shapes:
             figs.add_shape(i)
@@ -354,9 +446,15 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual
             for i in range(len(figadditivesprojection[4].data)):
                 figs.add_trace(figadditivesprojection[4].data[i])
                 #Add hover data for projection
-                dataprojection = pd.DataFrame({'x': [figadditivesprojection[4].data[i].x[1], figadditivesprojection[4].data[i].x[1]], 
+                try:
+                    dataprojection = pd.DataFrame({'x': [figadditivesprojection[4].data[i].x[1], figadditivesprojection[4].data[i].x[1]], 
                                                'y': [figadditivesprojection[4].data[i].y[1], figadditivesprojection[4].data[i].y[1]], 
-                                               'customdata0': [figadditivesprojection[4].data[i].x[1].date(), figadditivesprojection[4].data[i].x[1].date()],
+                                               'customdata0': [datetime.datetime.strptime(figadditivesprojection[4].data[i].x[1], format1).date(), datetime.datetime.strptime(figadditivesprojection[4].data[i].x[1], format1).date()],
+                                               'customdata1': ['L'+str(int(round(figadditivesprojection[4].data[i].y[1]))), 'L'+str(int(round(figadditivesprojection[4].data[i].y[1])))]})
+                except:
+                    dataprojection = pd.DataFrame({'x': [figadditivesprojection[4].data[i].x[1], figadditivesprojection[4].data[i].x[1]], 
+                                               'y': [figadditivesprojection[4].data[i].y[1], figadditivesprojection[4].data[i].y[1]], 
+                                               'customdata0': [datetime.datetime.strptime(figadditivesprojection[4].data[i].x[1], format2).date(), datetime.datetime.strptime(figadditivesprojection[4].data[i].x[1], format2).date()],
                                                'customdata1': ['L'+str(int(round(figadditivesprojection[4].data[i].y[1]))), 'L'+str(int(round(figadditivesprojection[4].data[i].y[1])))]})
                 Fadd = px.line(dataprojection, x = 'x', y = 'y', color_discrete_sequence = 2*['black'], hover_data = ['customdata0', 'customdata1'])
                 Fadd.update_traces(hovertemplate = 'Projected finish: %{customdata[0]}<br>Level: %{customdata[1]}')
@@ -375,8 +473,8 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual
                     pass
             else:
                 for j in range(len(figadditives[4].data[i].x)//3):
-                    for k in range(timegap(figadditives[4].data[i].x[3*j].date(), figadditives[4].data[i].x[3*j+1].date())+1):
-                        workingdays.append(figadditives[4].data[i].x[3*j].date()+timedelta(days = k))
+                    for k in range(timegap(figadditives[4].data[i].x[3*j], figadditives[4].data[i].x[3*j+1])+1):
+                        workingdays.append(datetime.datetime.strptime(figadditives[4].data[i].x[3*j], format2).date()+timedelta(days = k))
         
         for i in figadditives[4].layout.shapes:
             figs.add_shape(i)
@@ -388,9 +486,15 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual
             for i in range(len(figadditivesprojection[5].data)):
                 figs.add_trace(figadditivesprojection[5].data[i])
                 #Add hover data for projection
-                dataprojection = pd.DataFrame({'x': [figadditivesprojection[5].data[i].x[1], figadditivesprojection[5].data[i].x[1]], 
+                try:
+                    dataprojection = pd.DataFrame({'x': [figadditivesprojection[5].data[i].x[1], figadditivesprojection[5].data[i].x[1]], 
                                                'y': [figadditivesprojection[5].data[i].y[1], figadditivesprojection[5].data[i].y[1]], 
-                                               'customdata0': [figadditivesprojection[5].data[i].x[1].date(), figadditivesprojection[5].data[i].x[1].date()],
+                                               'customdata0': [datetime.datetime.strptime(figadditivesprojection[5].data[i].x[1], format1).date(), datetime.datetime.strptime(figadditivesprojection[5].data[i].x[1], format1).date()],
+                                               'customdata1': ['L'+str(int(round(figadditivesprojection[5].data[i].y[1]))), 'L'+str(int(round(figadditivesprojection[5].data[i].y[1])))]})
+                except:
+                    dataprojection = pd.DataFrame({'x': [figadditivesprojection[5].data[i].x[1], figadditivesprojection[5].data[i].x[1]], 
+                                               'y': [figadditivesprojection[5].data[i].y[1], figadditivesprojection[5].data[i].y[1]], 
+                                               'customdata0': [datetime.datetime.strptime(figadditivesprojection[5].data[i].x[1], format2).date(), datetime.datetime.strptime(figadditivesprojection[5].data[i].x[1], format2).date()],
                                                'customdata1': ['L'+str(int(round(figadditivesprojection[5].data[i].y[1]))), 'L'+str(int(round(figadditivesprojection[5].data[i].y[1])))]})
                 Fadd = px.line(dataprojection, x = 'x', y = 'y', color_discrete_sequence = 2*['black'], hover_data = ['customdata0', 'customdata1'])
                 Fadd.update_traces(hovertemplate = 'Projected finish: %{customdata[0]}<br>Level: %{customdata[1]}')
@@ -409,8 +513,8 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual
                     pass
             else:
                 for j in range(len(figadditives[5].data[i].x)//3):
-                    for k in range(timegap(figadditives[5].data[i].x[3*j].date(), figadditives[5].data[i].x[3*j+1].date())+1):
-                        workingdays.append(figadditives[5].data[i].x[3*j].date()+timedelta(days = k))
+                    for k in range(timegap(figadditives[5].data[i].x[3*j], figadditives[5].data[i].x[3*j+1])+1):
+                        workingdays.append(datetime.datetime.strptime(figadditives[5].data[i].x[3*j], format2).date()+timedelta(days = k))
         
         for i in figadditives[5].layout.shapes:
             figs.add_shape(i)
@@ -470,7 +574,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual
     planactualfigs.layout = figs.layout
 
     #State condition whether activities were finished in the lapse
-    if False in [int(i) == round(i, 5) for i in np.concatenate([i.y for i in figs.data if i.line.color == 'black']) if math.isnan(i) == False]:
+    if False in [int(i) == round(i, 5) for i in np.concatenate([i.y for i in figs.data if i.line.color == 'black']) if i!= None]:
         finished = False
     else:
         finished = True
@@ -567,7 +671,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual
         #Update size of plot
         planactualfigs.update_layout(height=height, width=width)
         #Use extra data to ensure that xaxis range is fixed
-        maxrange = max([datetimeconversion(i) for i in np.concatenate([i.x for i in planactualfigs.data]) if type(i) == datetime.date or type(i) == datetime.datetime])
+        maxrange = max([datetimeconversion(i) for i in np.concatenate([i.x for i in planactualfigs.data]) if type(i) == str])
         planactualfigs.update_layout(yaxis = dict(tickmode='array', tickvals = [i for i in range(cladding_dates[1][1][-2])], ticktext = ['']*cladding_dates[1][1][-2], range = [-0.7, 13.7], title_standoff = 50),
                            xaxis = dict(range = [date(2022, 10, 31)-timedelta(days=5), maxrange+timedelta(days=5)]))
         #Add weekends and holidays
@@ -589,7 +693,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual
             figs.add_trace(planfigs.data[i])
         figs.update_layout(title = dict(text = '<b>Flowlines Fit-out - North Building (Plan v Actual)<b>', font = dict(size = 25)))
         #Use extra data to ensure that xaxis range is fixed
-        maxrange = max([datetimeconversion(i) for i in np.concatenate([i.x for i in figs.data]) if type(i) == datetime.date or type(i) == datetime.datetime])
+        maxrange = max([datetimeconversion(i) for i in np.concatenate([i.x for i in figs.data]) if type(i) == str])
         #In the case the furthest point is a shaded rectangle
         if [dateconversion(i.x1) for i in figs.layout.shapes if i.type == 'rect' and i.fillcolor == 'black'] != []:
             if max([dateconversion(i.x1) for i in figs.layout.shapes if i.type == 'rect' and i.fillcolor == 'black']) > dateconversion(maxrange):
@@ -626,7 +730,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual
         #Update size of plot
         actualfigs.update_layout(height=height, width=width)
         #Use extra data to ensure that xaxis range is fixed
-        maxrange = max([datetimeconversion(i) for i in np.concatenate([i.x for i in actualfigs.data]) if type(i) == datetime.date or type(i) == datetime.datetime])
+        maxrange = max([datetimeconversion(i) for i in np.concatenate([i.x for i in actualfigs.data]) if type(i) == str])
         actualfigs.update_layout(yaxis = dict(tickmode='array', tickvals = [i for i in range(cladding_dates[1][1][-2])], ticktext = ['']*cladding_dates[1][1][-2], range = [-0.7, 13.7], title_standoff = 50),
                            xaxis = dict(range = [date(2022, 10, 31)-timedelta(days=5), maxrange+timedelta(days=5)]))
         #Add weekends and holidays
@@ -645,7 +749,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual
     elif valueactual == True and valueplan == False and valueflowlines == True:
         figs.update_layout(title = dict(text = '<b>Flowlines Fit-out - North Building (Actual)<b>', font = dict(size = 25)))
         #Use extra data to ensure that xaxis range is fixed
-        maxrange = max([datetimeconversion(i) for i in np.concatenate([i.x for i in figs.data]) if type(i) == datetime.date or type(i) == datetime.datetime])
+        maxrange = max([datetimeconversion(i) for i in np.concatenate([i.x for i in figs.data]) if type(i) == str])
         #In the case the furthest point is a shaded rectangle
         if [dateconversion(i.x1) for i in figs.layout.shapes if i.type == 'rect' and i.fillcolor == 'black'] != []:
             if max([dateconversion(i.x1) for i in figs.layout.shapes if i.type == 'rect' and i.fillcolor == 'black']) > dateconversion(maxrange):
@@ -825,7 +929,7 @@ if __name__ == '__main__':
     app1.run_server(debug=True, port=port)
 
 
-# In[28]:
+# In[7]:
 
 
 app2 = dash.Dash(__name__)
@@ -1584,13 +1688,13 @@ if __name__ == '__main__':
     app2.run_server(debug=True, port=8052)
 
 
-# In[29]:
+# In[8]:
 
 
 figadditives[0].data[0].line
 
 
-# In[30]:
+# In[9]:
 
 
 Flowlines1fig.layout.title.text ='<b>Plan v Actual activity lines North<b>'
@@ -1604,13 +1708,13 @@ app4.layout = html.Div([
  #   app3.run(debug=True, port=8051)
 
 
-# In[31]:
+# In[10]:
 
 
 print(figadditivessth[4].layout.coloraxis)
 
 
-# In[32]:
+# In[11]:
 
 
 Flowlines1figsth.layout.title.text ='<b>Plan v Actual activity lines South<b>'
@@ -1623,7 +1727,7 @@ app5.layout = html.Div([dcc.Graph(id='plot-output', figure = Flowlines1figsth, s
  #   app4.run(debug=True, port=8051)
 
 
-# In[33]:
+# In[12]:
 
 
 app6 = dash.Dash(__name__)
