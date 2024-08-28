@@ -644,7 +644,7 @@ def update_plot(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, valueactual
         #Update size of plot
         planactualfigs.update_layout(height=height, width=width)
         #Use extra data to ensure that xaxis range is fixed
-        maxrange = max([datetimeconversion(i) for i in np.concatenate([i.x for i in planactualfigs.data]) if type(i) == str])
+        maxrange = max([datetimeconversion(i) for i in np.concatenate([np.array(i.x) for i in planactualfigs.data]) if type(i) == str])
         planactualfigs.update_layout(yaxis = dict(tickmode='array', tickvals = [i for i in range(cladding_dates[1][1][-2])], ticktext = ['']*cladding_dates[1][1][-2], range = [-0.7, 13.7], title_standoff = 50),
                            xaxis = dict(range = [date(2022, 10, 31)-timedelta(days=5), maxrange+timedelta(days=5)]))
         #Add weekends and holidays
