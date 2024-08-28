@@ -1,37 +1,55 @@
 #!/usr/bin/env python
 # coding: utf-8
-
-# In[24]:
-
-
-import nbformat
-from nbconvert import PythonExporter
-
-# Load the notebook
-with open('/Users/juanfranciscolorussonotarofrancesco/Desktop/Progress Data Exports/Productivity_dates.ipynb', encoding='utf-8') as f:
-    notebook = nbformat.read(f, as_version=4)
-
-# Create a PythonExporter
-exporter = PythonExporter()
-
-# Export the notebook to Python script
-script, _ = exporter.from_notebook_node(notebook)
-
-# Write the script to a file
-with open('/Users/juanfranciscolorussonotarofrancesco/Desktop/Progress Data Exports/Productivity_dates.py', 'w', encoding='utf-8') as f:
-    f.write(script)
-
-
 # In[25]:
-
-
-import Productivity_dates
-from Productivity_dates import figadditives, custom_colorscale, cladding_dates, flowlineactivitiesfig_layouts_datapoints, flowlineactivitiesfig_layouts, figadditivesprojection, name_legend, Flowlines1fig, southfloornamelen, timegap
-from Productivity_dates import figadditivessth, figadditivessthprojection, Flowlines1figsth
 import numpy as np
 import math
 import pandas as pd
+import json
+import plotly.graph_objs as go
+import plotly.express as px
 
+def json_file_to_list(filename):
+    # Step 1: Open and read the JSON file
+    with open(filename, 'r') as file:
+        # Step 2: Load the content as a Python object (in this case, a list)
+        data_list = json.load(file)
+    
+    # The data_list is now a Python list
+    return data_list
+
+def json_to_figure(filename):
+    # Step 1: Open and read the JSON file
+    with open(filename, 'r') as file:
+        json_data = json.load(file)
+    
+    # Step 2: Convert the JSON data into a Plotly figure
+    fig = go.Figure(json_data)
+    
+    # Step 3: Return the figure object
+    return fig
+
+def json_to_figures_list(filename):
+    # Step 1: Open and read the JSON file
+    with open(filename, 'r') as file:
+        json_data = json.load(file)
+    
+    # Step 2: Convert each JSON object into a Plotly figure
+    figures = [go.Figure(json.loads(fig_data)) for fig_data in json_data]
+    
+    # Step 3: Return the list of figures
+    return figures
+
+# Example usage
+name_legend = json_file_to_list('namelegend.json')
+custom_colorscale = json_file_to_list('customcolorscale.json')
+southfloornamelen = json_file_to_list('southfloornamelen.json')
+cladding_dates = json_file_to_list('claddingdates.json')
+Flowlines1fig = json_to_figure('Flowlines1fig.json')
+Flowlines1figsth = json_to_figure('Flowlines1figsth.json')
+figadditives = json_to_figures_list('figadditives.json')
+figadditivessth = json_to_figures_list('figadditivessth.json')
+figadditivessthprojection = json_to_figures_list('figadditivessthprojection.json')
+figadditivesprojection = json_to_figures_list('figadditivesprojection.json')
 
 # In[26]:
 
@@ -90,6 +108,7 @@ def mindate(arr):
     return min(datetimeconversion(i) for i in arr if type(i)==datetime.datetime or type(i)==date)
 
 app1 = dash.Dash(__name__)
+server1 = app1.server
 
 htmlbuttons = [html.Div(html.Span('Fit-out Activities', style = {'font-family': 'Arial, sans-serif', 'font-size': '20px', 'font-weight': 'bold', 'text-decoration': 'underline'}), style={'margin-bottom': '30px', 'margin-left': '20px'})]
 htmlbuttons2 = []
@@ -802,6 +821,7 @@ def update_button_children(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, 
     )
 
 if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 8051)) 
     app1.run_server(debug=True, port=8051)
 
 
