@@ -1,33 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[14]:
-
-
-import nbformat
-from nbconvert import PythonExporter
-
-# Load the notebook
-with open('/Users/juanfranciscolorussonotarofrancesco/Desktop/Progress Data Exports/Productivity_dates_graphs1.ipynb', encoding='utf-8') as f:
-    notebook = nbformat.read(f, as_version=4)
-
-# Create a PythonExporter
-exporter = PythonExporter()
-
-# Export the notebook to Python script
-script, _ = exporter.from_notebook_node(notebook)
-
-# Write the script to a file
-with open('/Users/juanfranciscolorussonotarofrancesco/Desktop/Progress Data Exports/Productivity_dates_graphs1.py', 'w', encoding='utf-8') as f:
-    f.write(script)
-
-
-# In[2]:
-
-
-#import Productivity_dates
-#from Productivity_dates import figadditives, custom_colorscale, cladding_dates, flowlineactivitiesfig_layouts_datapoints, flowlineactivitiesfig_layouts, figadditivesprojection, name_legend, Flowlines1fig, southfloornamelen, timegap
-#from Productivity_dates import figadditivessth, figadditivessthprojection, Flowlines1figsth
 import numpy as np
 import math
 import pandas as pd
