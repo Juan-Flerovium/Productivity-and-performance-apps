@@ -16,7 +16,7 @@ import plotly.express as px
 def nd(x):
     if type(x) == np.ndarray:
         return x
-    if type(x) == list:
+    if type(x) == list or type(x) == tuple:
         return np.array(x)
     else:
         return np.array([x])
