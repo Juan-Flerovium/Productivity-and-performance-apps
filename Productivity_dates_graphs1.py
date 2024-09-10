@@ -914,7 +914,7 @@ def update_button_children(n_1WP, n_2WP, n_3WP, n_4WP, n_5WP, n_6WP, valueplan, 
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8081)) 
-    app1.run_server(debug=True, host = '0.0.0.0', port=port)
+    app1.run_server(debug=True, port=port)
 
 
 # In[7]:
